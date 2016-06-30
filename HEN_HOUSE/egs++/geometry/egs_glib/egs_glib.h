@@ -171,7 +171,7 @@ Creating geometries based on egsphant files
 \endverbatim
 
 by specifying `type=egsphant` in your input, egs_glib will parse the
-egsphant file (either plane .egsphant text file or gzipped .egsphant.gz file
+egsphant file (either plane .egsphant text file or gzipped .egsphant.gz file)
 you specify and construct a matching geometry.  The density file is
 required so that the geometry may set the relative density of each
 region correctly. Typically you would just set the `density file`
@@ -193,6 +193,13 @@ Examples
 --------
 Examples of using the glib library are available in the
 glib.geom, glib_egsphant.geom and seeds_in_xyz_aenv.geom files.
+
+Optional Features
+-----------------
+
+In order to use the gzip functionality you must have the egspp-geometry-lib-extras
+installed.  Due to NRC licensing requirements this code is distributed separately and
+can be obtained from https://github.com/clrp-code/egspp-geometry-lib-extras/ .
 
 */
 

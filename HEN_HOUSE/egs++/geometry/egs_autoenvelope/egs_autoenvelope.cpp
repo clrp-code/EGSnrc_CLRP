@@ -44,11 +44,14 @@
 #include <iostream>
 #include <fstream>
 
-#include "sobol.h"
+#ifdef HAS_SOBOL
+    #include "sobol.h"
+#endif
 
 
 string EGS_AENVELOPE_LOCAL EGS_AEnvelope::type = "EGS_AEnvelope";
 string EGS_AENVELOPE_LOCAL EGS_ASwitchedEnvelope::type = "EGS_ASwitchedEnvelope";
+
 
 static char EGS_AENVELOPE_LOCAL geom_class_msg[] = "createGeometry(AEnvelope): %s\n";
 static char EGS_AENVELOPE_LOCAL base_geom_keyword[] = "base geometry";
@@ -62,7 +65,6 @@ static char EGS_AENVELOPE_LOCAL transformation_keyword[] = "transformation";
 EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
                              const vector<AEnvelopeAux> inscribed, const string &Name, bool debug, string output_vc_file) :
     EGS_BaseGeometry(Name), base_geom(base_geom), debug_info(debug), output_vc(output_vc_file) {
-
 
     base_geom->ref();
     nregbase = base_geom->regions();
@@ -688,9 +690,11 @@ void EGS_AEnvelope::writeVolumeCorrection() {
         gname.c_str(), output_vc.c_str(), fname.c_str());
 
     if (output_vc == "gzip") {
+#ifdef HAS_GZSTREAM
         ogzstream outgz(fname.c_str());
         writeVCToFile(outgz);
         outgz.close();
+#endif
     }
     else {
         ofstream out(fname.c_str());
@@ -919,6 +923,17 @@ extern "C" {
         vc_file_choices.push_back("gzip");
         output_vc_file_choice = input->getInput("output volume correction file", vc_file_choices, 0);
         string output_vc_file = vc_file_choices[output_vc_file_choice];
+
+#ifndef HAS_GZSTREAM
+        if (output_vc_file == "gzip") {
+            egsWarning(
+                "GZip file output requested but not compiled with gzstream.\n"
+                "Please recompile with gzstream support.\n"
+            );
+            return 0;
+        }
+#endif
+
 
 
         string base_geom_name;

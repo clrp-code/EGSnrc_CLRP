@@ -45,7 +45,9 @@
 #include "egs_glib.h"
 #include "../egs_nd_geometry/egs_nd_geometry.h"
 #include "../egs_planes/egs_planes.h"
-#include "gzstream.h"
+#ifdef HAS_GZSTREAM
+#include "../egs_autoenvelope/gzstream.h"
+#endif
 
 /*! \brief Split a string on input delimeter */
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
@@ -199,10 +201,15 @@ EGS_BaseGeometry *parse_egsphant(string fpath, map<string, EGS_Float> med_rhos) 
     }
     EGS_BaseGeometry *result;
     if (isGZip(data)) {
+#ifdef HAS_GZSTREAM
         data.close();
         igzstream gzf(fpath.c_str());
         result = readEGSPhant(gzf, med_rhos);
         gzf.close();
+#else
+        egsWarning("Tried to read gzipped egsphant but egs_glib was not compiled with gzip support\n");
+        return 0;
+#endif
     }
     else {
         data.close();
