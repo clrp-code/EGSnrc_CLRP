@@ -21,9 +21,13 @@
 #include "egs_rndm.h"
 #include "egs_shapes.h"
 
-#include "egs_sobol.h"
+#ifdef HAS_SOBOL
+    #include "egs_sobol.h"
+#endif
 
-#include "gzstream.h"
+#ifdef HAS_GZSTREAM
+    #include "gzstream.h"
+#endif
 
 /*! \brief Region discovery/volume correction for auto envelope geometries
  *
@@ -346,7 +350,11 @@ protected:
                     rng = EGS_RandomGenerator::defaultRNG();
                 }
                 else {
+#ifdef HAS_SOBOL
                     rng = new EGS_Sobol(rng_input);
+#else
+                    egsWarning("Sobol RNG requested but not compiled with Sobol support\n");
+#endif
                 }
             }
             else {
@@ -359,12 +367,16 @@ protected:
 
         }
         else {
+#ifdef HAS_SOBOL
             if (sobolAllowed) {
                 rng = new EGS_Sobol();
             }
             else {
+#endif
                 rng = EGS_RandomGenerator::defaultRNG();
+#ifdef HAS_SOBOL
             }
+#endif
         }
     }
 
@@ -593,9 +605,14 @@ int loadVolumes(string fname, vector<RegVolume> &reg_volumes, RegionGeomSetT &re
     }
 
     if (isGZip(vfile)) {
+#ifdef HAS_GZSTREAM
         igzstream gzf(fname.c_str());
         readVolumes(gzf, reg_volumes, reg_with_inscribed, inscribed);
         gzf.close();
+#else
+        egsWarning("Tried to load gzip volume correction file but not compiled with gzstream.\n");
+        return 1;
+#endif
     }
     else {
         readVolumes(vfile, reg_volumes, reg_with_inscribed, inscribed);

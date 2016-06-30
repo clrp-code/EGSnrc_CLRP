@@ -259,7 +259,9 @@ Volume correction files
 By including the `output volume correction file = text # text or gzip`
 input key, you can output a volume correction file that will output a file
 which includes all of the regions that were found to contain inscribed
-geometries and their corrected volumes.
+geometries and their corrected volumes. (For the gzip functionality you
+must have the egspp-geometry-lib-extras installed: see Optional Features
+below).
 
 The volume correction file can then be used in future runs by using a
 volume correction block like the following for the inscribed geometry:
@@ -287,9 +289,10 @@ regions containing inscribed geometries will be discovered.  This would
 generally happen if your bounding shape is too small to cover the entire
 insribed geometry or you choose a density of points that is too low.
 
-By default a Sobol quasi-random number generator is used for volume
-correction/region discovery but that can be overridden by including an `rng
-definition` block (see example input above)
+By default a Sobol quasi-random number generator (if available, see
+    `Optional Features` below) is used for volume correction/region
+discovery but that can be overridden by including an `rng definition`
+block (see example input above)
 
 
 EGS_ASwitchedEnvelope
@@ -312,6 +315,14 @@ Examples
 
 An example geometry file using an autoenvelope is provided in
 seeds_in_xyz_aenv.geom.
+
+
+Optional Features
+-----------------
+
+In order to use the gzip and Sobol functionality you must have the egspp-geometry-lib-extras
+installed.  Due to NRC licensing requirements this code is distributed separately and
+can be obtained from https://github.com/clrp-code/egspp-geometry-lib-extras/ .
 
 */
 

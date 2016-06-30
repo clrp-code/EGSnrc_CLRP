@@ -8,10 +8,29 @@ include $(EGS_CONFIG)
 include $(SPEC_DIR)egspp.spec
 include $(SPEC_DIR)egspp_$(my_machine).conf
 
-DEFS = $(DEF1) -DBUILD_AENVELOPE_DLL -DBUILD_SOBOL_DLL -DBUILD_AE_SOBOL
+SOBOL =
+SOBOL_DEF =
+SOBOL_H =
+ifneq ("$(wildcard egs_sobol.cpp)","")
+SOBOL = sobol egs_sobol
+SOBOL_DEF = -DBUILD_SOBOL_DLL -DBUILD_AE_SOBOL -DHAS_SOBOL
+SOBOL_H = sobol.h egs_sobol.h
+endif
+
+GZSTREAM =
+GZSTREAM_DEF =
+GZSTREAM_H =
+ifneq ("$(wildcard gzstream.cpp)","")
+GZSTREAM = gzstream
+GZSTREAM_DEF = -DBUILD_GZSTREAM -DHAS_GZSTREAM
+GZSTREAM_H = gzstream.h
+endif
+
+DEFS = $(DEF1) -DBUILD_AENVELOPE_DLL $(SOBOL_DEF) $(GZSTREAM_DEF)
+
 
 library = egs_autoenvelope
-lib_files = egs_autoenvelope sobol egs_sobol gzstream
+lib_files = egs_autoenvelope $(SOBOL) $(GZSTREAM)
 
 link2_libs = egs_gtransformed egspp
 
@@ -21,7 +40,7 @@ include $(SPEC_DIR)egspp_libs.spec
 $(make_depend)
 
 
-$(DSO2)autoenvelope.$(obje): volcor.h gzstream.h \
+$(DSO2)autoenvelope.$(obje): volcor.h $(GZSTREAM_H) $(SOBOL_H)\
                           ..$(DSEP)egs_gtransformed$(DSEP)egs_gtransformed.h
 
 $(ABS_DSO)$(libpre)egs_autoenvelope$(libext): volcor.h gzstream.h \
