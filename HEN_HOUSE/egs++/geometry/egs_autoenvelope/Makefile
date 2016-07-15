@@ -20,10 +20,12 @@ endif
 GZSTREAM =
 GZSTREAM_DEF =
 GZSTREAM_H =
+GZSTREAM_LIB =
 ifneq ("$(wildcard gzstream.cpp)","")
 GZSTREAM = gzstream
 GZSTREAM_DEF = -DBUILD_GZSTREAM -DHAS_GZSTREAM
 GZSTREAM_H = gzstream.h
+GZSTREAM_LIB = z
 endif
 
 DEFS = $(DEF1) -DBUILD_AENVELOPE_DLL $(SOBOL_DEF) $(GZSTREAM_DEF)
@@ -32,7 +34,7 @@ DEFS = $(DEF1) -DBUILD_AENVELOPE_DLL $(SOBOL_DEF) $(GZSTREAM_DEF)
 library = egs_autoenvelope
 lib_files = egs_autoenvelope $(SOBOL) $(GZSTREAM)
 
-link2_libs = egs_gtransformed egspp
+link2_libs = egs_gtransformed egspp $(GZSTREAM_LIB)
 
 
 include $(SPEC_DIR)egspp_libs.spec
@@ -40,10 +42,10 @@ include $(SPEC_DIR)egspp_libs.spec
 $(make_depend)
 
 
-$(DSO2)autoenvelope.$(obje): volcor.h $(GZSTREAM_H) $(SOBOL_H)\
+$(DSO2)autoenvelope.$(obje): volcor.h $(GZSTREAM_H) \
                           ..$(DSEP)egs_gtransformed$(DSEP)egs_gtransformed.h
 
-$(ABS_DSO)$(libpre)egs_autoenvelope$(libext): volcor.h gzstream.h \
+$(ABS_DSO)$(libpre)egs_autoenvelope$(libext): volcor.h $(GZSTREAM_H) \
 						..$(DSEP)egs_gtransformed$(DSEP)egs_gtransformed.h
 
 clean:
