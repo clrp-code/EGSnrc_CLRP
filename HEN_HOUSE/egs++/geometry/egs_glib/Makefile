@@ -11,10 +11,12 @@ include $(SPEC_DIR)egspp_$(my_machine).conf
 GZSTREAM =
 GZSTREAM_DEF =
 GZSTREAM_H =
+GZSTREAM_LIB =
 ifneq ("$(wildcard gzstream.cpp)","")
 GZSTREAM = gzstream
 GZSTREAM_DEF = -DBUILD_GZSTREAM -DHAS_GZSTREAM
 GZSTREAM_H = gzstream.h
+GZSTREAM_LIB = z
 endif
 
 DEFS = $(DEF1) $(GZSTREAM_DEF)
@@ -22,7 +24,7 @@ DEFS = $(DEF1) $(GZSTREAM_DEF)
 library = egs_glib
 lib_files = egs_glib $(GZSTREAM)
 
-link2_libs = egspp egs_ndgeometry egs_planes
+link2_libs = egspp egs_ndgeometry egs_planes $(GZSTREAM_LIB)
 
 include $(SPEC_DIR)egspp_libs.spec
 
