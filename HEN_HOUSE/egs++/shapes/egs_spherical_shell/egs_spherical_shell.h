@@ -73,7 +73,7 @@ A sample input block is given below
 \verbatim
 :start shape:
     library = egs_spherical_shell
-    midpoint = O, O, O
+    midpoint = 0, 0, 0
     inner radius = 0.5
     outer radius = 1
     hemisphere = 1  # optional
