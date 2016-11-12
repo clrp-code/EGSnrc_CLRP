@@ -262,6 +262,7 @@ extern "C" {
 
         rz->setName(input);
         rz->setMedia(input);
+        rz->setLabels(input);
 
         return rz;
 
