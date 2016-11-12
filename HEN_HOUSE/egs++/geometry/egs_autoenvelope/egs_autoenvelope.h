@@ -181,7 +181,7 @@ for step = 1 to n_total_points
 Geometry Definition Format
 --------------------------
 
-There is an example geometry included in the egs_autoenvelope/6702.geom file.
+There is an example geometry included in the examples/seeds_in_xyz_aenv.geom file.
 
 \verbatim
 
@@ -198,8 +198,6 @@ There is an example geometry included in the egs_autoenvelope/6702.geom file.
     :start inscribed geometry:
 
         inscribed geometry name = seed # the name of a previously defined geometry
-
-        output volume correction file = text # (optional) text or gzip
 
         # optional: locations of inscribed geometries.  If no transformations
         # are included, a single inscribed geometry at the origin will be used
@@ -496,8 +494,7 @@ private:
 *   style) type calculation.
 *
 *  The inputs are all exactly the same as the EGS_AEnvelope and only the
-*  first inscribed geometry is activated upon initialization. Examples of using
-*  this geometry type are available in the EGS_ASwitchedEnvlope class documentation.
+*  first inscribed geometry is activated upon initialization.
 *
 \verbatim
 

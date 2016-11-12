@@ -437,12 +437,18 @@ public:
     void outputResults() const {
 
         egsInformation(" --------- Volume Correction Results -----------\n");
-        egsInformation(" Time taken                  = %.4f s (%.3E s/point) \n", time, time/npoints);
-        egsInformation(" Density of points used      = %.3E points/cm^-3\n", density);
-        egsInformation(" Number of points used       = %G\n", npoints);
-        egsInformation(" Bounding shape volume       = %.5E cm^3\n", bounds_volume);
-        egsInformation(" Inscribed geometry volume   = %.5E cm^3\n", inscribed_volume);
-        options->rng->describeRNG();
+        if (vc_file == "") {
+            egsInformation(" Time taken                  = %.4f s (%.3E s/point) \n", time, time/npoints);
+            egsInformation(" Density of points used      = %.3E points/cm^-3\n", density);
+            egsInformation(" Number of points used       = %G\n", npoints);
+            egsInformation(" Bounding shape volume       = %.5E cm^3\n", bounds_volume);
+            egsInformation(" Inscribed geometry volume   = %.5E cm^3\n", inscribed_volume);
+            options->rng->describeRNG();
+        }else{
+            egsInformation(" Time taken                  = %.4f s\n", time);
+            egsInformation(" Volume correction file      = %s\n", vc_file.c_str());
+        }
+
         egsInformation(" -----------------------------------------------\n");
 
     }
@@ -605,6 +611,7 @@ int loadVolumes(string fname, vector<RegVolume> &reg_volumes, RegionGeomSetT &re
     }
 
     if (isGZip(vfile)) {
+        vfile.close();
 #ifdef HAS_GZSTREAM
         igzstream gzf(fname.c_str());
         readVolumes(gzf, reg_volumes, reg_with_inscribed, inscribed);
@@ -615,9 +622,11 @@ int loadVolumes(string fname, vector<RegVolume> &reg_volumes, RegionGeomSetT &re
 #endif
     }
     else {
-        readVolumes(vfile, reg_volumes, reg_with_inscribed, inscribed);
+        vfile.close();
+        ifstream vfile2(fname.c_str(), ios::in);
+        readVolumes(vfile2, reg_volumes, reg_with_inscribed, inscribed);
+        vfile2.close();
     }
-    vfile.close();
 
     return 0;
 
