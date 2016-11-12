@@ -138,7 +138,7 @@ EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
         egsFatal("EGS_AEnvelope:: Failed to find any regions with inscribed geometries\n");
     }
 
-    if (output_vc=="text" || output_vc=="gzip") {
+    if (output_vc=="yes" || output_vc=="text" || output_vc=="gzip") {
         writeVolumeCorrection();
     }
 
@@ -611,7 +611,7 @@ void EGS_AEnvelope::printInfo() const {
     if (debug_info) {
 
         for (int ir=0; ir < nregbase; ir++) {
-            if (fabs(uncorrected_mass[ir] - corrected_mass[ir]) < 1E-8) {
+            if (fabs(uncorrected_mass[ir] - corrected_mass[ir]) > 1E-8) {
                 egsInformation("    mass of region %d was corrected from %.5E g to %.5E g\n",
                                ir, uncorrected_mass[ir], corrected_mass[ir]);
             }
