@@ -130,7 +130,7 @@ EGS_Float CSSSLayer::getRiAtZ(EGS_Float z) {
 
 
 
-/*! \brief Construct a sphere of radius \a r with midpoint \a Xo */
+/*! \brief Construct a concical shell with midpoint \a Xo */
 EGS_ConicalShellStackShape::EGS_ConicalShellStackShape(const EGS_Vector &Xo, const string &Name, EGS_ObjectFactory *f):
     EGS_BaseShape(Name, f), layer_sampler(0), xo(Xo) {
     otype = "conicalShellStack";
@@ -261,17 +261,6 @@ extern "C" {
             delete layer;
             ++nl;
         }
-
-        /*    ofstream out;
-            out.open("tmp.dat");
-            EGS_RandomGenerator *rnd = EGS_RandomGenerator::defaultRNG();
-            for (int i=0; i < 10000; i++){
-                EGS_Vector x = result->getPoint(rnd);
-                out <<x.x<<"\t"<<x.y<<"\t"<<x.z<<endl;
-            }
-
-            out.close();
-            */
 
         return result;
     }
