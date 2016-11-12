@@ -51,7 +51,8 @@
 
 string EGS_AENVELOPE_LOCAL EGS_AEnvelope::type = "EGS_AEnvelope";
 string EGS_AENVELOPE_LOCAL EGS_ASwitchedEnvelope::type = "EGS_ASwitchedEnvelope";
-
+/* only geometries that support getting regional volume/mass can be used as phantoms */
+const string EGS_AENVELOPE_LOCAL EGS_AEnvelope::allowed_base_geom_types[] = {"EGS_cSpheres", "EGS_cSphericalShell", "EGS_XYZGeometry", "EGS_RZ"};
 
 static char EGS_AENVELOPE_LOCAL geom_class_msg[] = "createGeometry(AEnvelope): %s\n";
 static char EGS_AENVELOPE_LOCAL base_geom_keyword[] = "base geometry";
@@ -65,6 +66,19 @@ static char EGS_AENVELOPE_LOCAL transformation_keyword[] = "transformation";
 EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
                              const vector<AEnvelopeAux> inscribed, const string &Name, bool debug, string output_vc_file) :
     EGS_BaseGeometry(Name), base_geom(base_geom), debug_info(debug), output_vc(output_vc_file) {
+
+    if (!allowedBaseGeomType(base_geom->getType())){
+
+        string msg("EGS_AEnvelope:: '%s' is not allowed as a base geometry. Valid choices are:\n\t");
+
+        int end = (int)(sizeof(allowed_base_geom_types)/sizeof(string));
+        for (int i=0; i < end; i++){
+            msg += allowed_base_geom_types[i] + " ";
+        }
+        msg += "\n";
+        egsFatal(msg.c_str(), base_geom->getType().c_str());
+    }
+
 
     base_geom->ref();
     nregbase = base_geom->regions();
@@ -153,6 +167,20 @@ EGS_AEnvelope::~EGS_AEnvelope() {
     if (!base_geom->deref()) {
         delete base_geom;
     }
+}
+
+bool EGS_AEnvelope::allowedBaseGeomType(const string &geom_type) {
+    // Check if the input geometry is one that aenvelope can handle
+
+    int end = (int)(sizeof(allowed_base_geom_types)/sizeof(string));
+
+    for (int i=0; i<end; i++) {
+        if (allowed_base_geom_types[i] == geom_type) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int EGS_AEnvelope::getGlobalRegFromLocalReg(EGS_BaseGeometry *g, int local_reg) {

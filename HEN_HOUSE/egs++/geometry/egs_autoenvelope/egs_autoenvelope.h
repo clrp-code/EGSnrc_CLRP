@@ -426,6 +426,11 @@ public:
     static vector<EGS_AffineTransform *> createTransforms(EGS_Input *inpt);
 
 
+    /*! \brief function for checking whether a given geometry type
+     * is allowed to be used as a base geometry */
+    static bool allowedBaseGeomType(const string &geom_type);
+
+
 protected:
 
     EGS_BaseGeometry *base_geom;           //!< The envelope geometry
@@ -452,6 +457,8 @@ protected:
     vector<EGS_Float> corrected_mass;
 
     static string type;    //!< Geometry type
+
+    const static string allowed_base_geom_types[];
 
     /*! \brief Don't set media for an envelope geometry
 
