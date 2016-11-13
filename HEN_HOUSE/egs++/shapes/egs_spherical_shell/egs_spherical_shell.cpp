@@ -103,10 +103,22 @@ extern "C" {
             egsWarning("createShape(sphericalShell): no 'inner radius' input\n");
             return 0;
         }
+        else if (ri < 0){
+            egsWarning("createShape(sphericalShell): 'inner radius' must be >= 0\n");
+            return 0;
+        }
 
         err = input->getInput("outer radius", ro);
         if (err) {
             egsWarning("createShape(sphericalShell): no 'outer radius' input\n");
+            return 0;
+        }
+        else if (ro < 0){
+            egsWarning("createShape(sphericalShell): 'outer radius' must be >= 0\n");
+            return 0;
+        }
+        else if (ri > ro){
+            egsWarning("createShape(sphericalShell): 'inner radius' must be less than 'outer radius'\n");
             return 0;
         }
 
@@ -114,6 +126,10 @@ extern "C" {
         err = input->getInput("hemisphere", hemisphere);
         if (err) {
             hemisphere = 0;
+        }
+        else if ((hemisphere != 0) && (hemisphere != -1) && (hemisphere != 1)){
+            egsWarning("createShape(sphericalShell): 'hemisphere' must be 1, -1, 0\n");
+            return 0;
         }
 
         EGS_Float half_angle=0, half_angle_deg= 0;
