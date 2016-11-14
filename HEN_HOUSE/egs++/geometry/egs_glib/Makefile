@@ -8,29 +8,19 @@ include $(EGS_CONFIG)
 include $(SPEC_DIR)egspp.spec
 include $(SPEC_DIR)egspp_$(my_machine).conf
 
-GZSTREAM =
-GZSTREAM_DEF =
-GZSTREAM_H =
-GZSTREAM_LIB =
-ifneq ("$(wildcard gzstream.cpp)","")
-GZSTREAM = gzstream
-GZSTREAM_DEF = -DBUILD_GZSTREAM -DHAS_GZSTREAM
-GZSTREAM_H = gzstream.h
-GZSTREAM_LIB = z
-endif
 
-DEFS = $(DEF1) $(GZSTREAM_DEF)
+DEFS = $(DEF1)
 
 library = egs_glib
-lib_files = egs_glib $(GZSTREAM)
+lib_files = egs_glib
 
-link2_libs = egspp egs_ndgeometry egs_planes $(GZSTREAM_LIB)
+link2_libs = egspp egs_ndgeometry egs_planes
 
 include $(SPEC_DIR)egspp_libs.spec
 
-$(DSO2)glib.$(obje): $(GZSTREAM_H)
+$(DSO2)glib.$(obje):
 
-$(ABS_DSO)$(libpre)egs_glib$(libext): $(GZSTREAM_H)
+$(ABS_DSO)$(libpre)egs_glib$(libext):
 
 $(make_depend)
 
