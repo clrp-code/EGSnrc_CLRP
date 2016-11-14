@@ -1,7 +1,7 @@
 
 ###############################################################################
 #
-#  EGSnrc egs++ sample glib geometry
+#  EGSnrc egs++ sample nd_geometry egsphant geometry
 #  Copyright (C) 2015 National Research Council Canada
 #
 #  This file is part of EGSnrc.
@@ -29,40 +29,22 @@
 #
 #  An example geometry input file for the egs++ geometry package.
 #
-#  This input demonstrates loading an external geometry using the glib
-#  library and inscribing it in an envelope geometry
+#  This input demonstrates loading an egsphant geometry using the nd_geometry
+#  library
 #
 ###############################################################################
-
 
 :start geometry definition:
 
     :start geometry:
-        library = egs_glib
-        type = egsphant
+        library = egs_ndgeometry
+        type = EGS_XYZGeometry
         name = my_egsphant_geom
-        egsphant file = glib_egsphant.egsphant
-        density file = glib_egsphant.density
+        egsphant file = ndgeom_egsphant.egsphant
+        ct ramp = ndgeom_egsphant.ramp
     :stop geometry:
 
-    :start geometry:
-
-        library      = egs_glib
-        name         = seed
-        include file = I6702.inp
-
-    :stop geometry:
-
-    :start geometry:
-
-        library              = egs_genvelope
-        base geometry        = my_egsphant_geom
-        inscribed geometries = seed
-        name = phantom_w_seed
-
-    :stop geometry:
-
-    simulation geometry = phantom_w_seed
+    simulation geometry = my_egsphant_geom
 
 :stop geometry definition:
 

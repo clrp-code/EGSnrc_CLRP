@@ -680,6 +680,9 @@ directly use egsphant files which have been compressed with gzip.
 :stop geometry:
 \endverbatim
 
+See \c ndgeom_egsphant.geom geometry file for an example of loading
+an egsphant file with egs_ndgeometry.
+
 
 The other new possibility to define a XYZ geometry is
 \verbatim
