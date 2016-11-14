@@ -244,6 +244,7 @@ geometries and make the simulation run somewhat slower.
 
 N-dimensional geometries are used in many of the example geometry files.
 
+
 A simple example:
 \verbatim
 :start geometry definition:
@@ -298,6 +299,14 @@ A simple example:
 :stop geometry definition:
 \endverbatim
 \image html egs_ndgeometry.png "A simple example"
+
+Optional Features
+-----------------
+
+In order to use the gzip functionality you must have the egspp-geometry-lib-extras
+installed.  Due to NRC licensing requirements this code is distributed separately and
+can be obtained from https://github.com/clrp-code/egspp-geometry-lib-extras/ .
+
 */
 class EGS_NDG_EXPORT EGS_NDGeometry : public EGS_BaseGeometry {
 
@@ -612,7 +621,7 @@ medium in all regions between x-indeces \c i1 and \c i2 (inclusive),
 y-indeces \c j1 and \c j2, and z-indeces \c k1 and \c k2 to the
 medium with index \c med.
 
-The following two possibilities for defining XYZ geometries have been
+The following possibilities for defining XYZ geometries have been
 added since the 2.2.4 release of EGSnrc:
 \verbatim
 :start geometry:
@@ -646,6 +655,31 @@ followed by Nx*Ny*Nz mass densities (32 bit floats) with the
 convention that the voxel (ix,iy,iz) is region
 ix+iy*Nx+iz*Nx*Ny in the mass density matrix. The ct ramp file is
 then used to convert the mass densities to media indeces.
+
+You may also create an EGS_XYZGeometry using an egsphant file (see
+PIRS-794 and the CTCreate program):
+\verbatim
+:start geometry:
+    library = egs_ndgeometry
+    type = EGS_XYZGeometry
+    egsphant file = your_phant.egsphant
+    ct ramp = ramp_file
+:stop geometry:
+\endverbatim
+with `ct ramp` being the same format as discussed above. If you've compiled
+egs_nd_geometry with GZIP support (distrbuted separately from EGSnrc due to
+licensing requirements. See
+https://github.com/clrp-code/egspp-geometry-lib-extras/) you may also
+directly use egsphant files which have been compressed with gzip.
+\verbatim
+:start geometry:
+    library = egs_ndgeometry
+    type = EGS_XYZGeometry
+    egsphant file = your_phant.egsphant.gz
+    ct ramp = ramp_file
+:stop geometry:
+\endverbatim
+
 
 The other new possibility to define a XYZ geometry is
 \verbatim
