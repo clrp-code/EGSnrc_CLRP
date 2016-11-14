@@ -48,9 +48,8 @@
 \ingroup Geometry
 
 
-egs_glib is a shim to be used in conjunction with the EGS Input `include
-file` directive or an egsphant file for creating geometries defined in
-external files.
+egs_glib is a shim to be used in conjunction with the EGS Input `include file`
+directive for creating geometries defined in external files.
 
 This is useful when you have a geometry defined in an external file:
 \verbatim
@@ -153,53 +152,11 @@ The above two definitions would result in a geometry equivalent to:
 \endverbatim
 
 
-Creating geometries based on egsphant files
--------------------------------------------
- egs_glib can also be used to construct an EGS_XYZGeometry based on
- an existing egsphant file.
-
-\verbatim
-
-    :start geometry:
-        library = egs_glib
-        type = egsphant
-        name = my_egsphant_geom
-        egsphant file = /path/to/some/egsphant/file
-        density file = /path/to/density/file
-    :stop geometry:
-
-\endverbatim
-
-by specifying `type=egsphant` in your input, egs_glib will parse the
-egsphant file (either plane .egsphant text file or gzipped .egsphant.gz file)
-you specify and construct a matching geometry.  The density file is
-required so that the geometry may set the relative density of each
-region correctly. Typically you would just set the `density file`
-key to point to the pegs4dat file that you will
-be using for your simulation although any file with a format:
-
-\verbatim
-
-MEDIUM=WATER
-RHO=1.000
-MEDIUM=AIR
-RHO=1.2E-3
-
-\endverbatim
-
-will also work fine.
-
 Examples
 --------
-Examples of using the glib library are available in the
-glib.geom, glib_egsphant.geom and seeds_in_xyz_aenv.geom files.
 
-Optional Features
------------------
-
-In order to use the gzip functionality you must have the egspp-geometry-lib-extras
-installed.  Due to NRC licensing requirements this code is distributed separately and
-can be obtained from https://github.com/clrp-code/egspp-geometry-lib-extras/ .
+Examples of using the glib library are available in the glib.geom and
+seeds_in_xyz_aenv.geom files.
 
 */
 
