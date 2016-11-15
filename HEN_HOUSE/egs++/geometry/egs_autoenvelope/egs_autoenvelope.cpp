@@ -712,10 +712,11 @@ void EGS_AEnvelope::writeVolumeCorrection() {
     string gname = base_geom->getName();
     string fname = gname+".autoenv.volcor";
     fname += (output_vc == "gzip" ?  ".gz" : "");
+    string mode  = (output_vc == "gzip" ?  "gzip" : "text");
 
     egsInformation(
         "Writing volume correction file for %s to %s file %s\n",
-        gname.c_str(), output_vc.c_str(), fname.c_str());
+        gname.c_str(), mode.c_str(), fname.c_str());
 
     if (output_vc == "gzip") {
 #ifdef HAS_GZSTREAM
