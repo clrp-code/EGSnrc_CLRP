@@ -147,11 +147,13 @@ proc set_src_options { isource } {
     }
     if {$isource==20 || $isource==21} {
 	#get settings
+        #min. of 2 set points
+        set numsets [expr max($numsets,2)] 
 	frame $w.setdef -bd 4
 	button $w.setdef.but -text "define settings"\
                                  -command {define_setting}
 	pack $w.setdef.but -side top -anchor w
-        pack $w.setdef -side top -anchor w
+        pack $w.setdef -side top 
     }
     if {$isource==2 || $isource==8 ||$isource==20} {
         #put in option to exclude fat photons from source if DBS was
@@ -341,7 +343,7 @@ proc set_src_options { isource } {
 	    pack $ww.mode.help -side left -anchor w
 	    pack $ww.mode.label -side left -padx 10
 	    pack $ww.mode.inp -padx 5 -pady 5  -fill x -expand true
-	    pack $ww.mode -anchor e
+	    pack $ww.mode -anchor w
         } else {
 	    label $ww.flab -text "File containing source parameters from BEAMDP:"
 	    pack $ww.flab -side top -anchor w -pady 5
@@ -374,7 +376,7 @@ proc set_src_options { isource } {
 	    pack $ww.ismooth.help -side left -anchor w
 	    pack $ww.ismooth.label -side left -padx 10
 	    pack $ww.ismooth.inp -padx 5 -pady 5  -fill x -expand true
-	    pack $ww.ismooth -anchor e
+	    pack $ww.ismooth -anchor e -pady 5
 
 	    frame $ww.mode
 	    button $ww.mode.help -text "?" -command "help 20"
@@ -392,7 +394,7 @@ proc set_src_options { isource } {
 	    pack $ww.mode.help -side left -anchor w
 	    pack $ww.mode.label -side left -padx 10
 	    pack $ww.mode.inp -padx 5 -pady 5  -fill x -expand true
-	    pack $ww.mode -anchor e
+	    pack $ww.mode -anchor e -pady 5
         }
 
 	pack $ww -side left -pady 5 -anchor n
@@ -416,10 +418,10 @@ proc set_src_options { isource } {
 			$ww.latch.inp configure -text {$options(21,$j)};\
 			$command($j)"
 	    }
-	    pack $ww.latch.help -side left -anchor w -padx 5
+	    pack $ww.latch.help -side left -anchor w
 	    pack $ww.latch.lab -side left
 	    pack $ww.latch.inp -side right -padx 5 -fill x -expand true
-            if {$isource!=9} {
+            if {$isource!=9 && $isource!=20} {
 	       pack $ww.latch -anchor se -pady 5
             } else {
                pack $ww.latch -anchor sw -pady 5
@@ -452,7 +454,7 @@ proc set_src_options { isource } {
             button $ww.dbs.help -text "?" -command "help dbs_forsrc9"
             pack $ww.dbs.help -side left
             pack $ww.dbs.idbs -side left
-            pack $ww.dbs -side top -anchor e -fill x -expand true -padx 5
+            pack $ww.dbs -side top -anchor e -fill x -expand true
 
             #put in option to split electrons if n_split>1
             frame $ww.esplit
@@ -462,7 +464,7 @@ proc set_src_options { isource } {
             pack $ww.esplit.help -side left -anchor w
             pack $ww.esplit.lab -side left -padx 10
             pack $ww.esplit.inp -padx 5 -fill x -expand true
-            pack $ww.esplit -anchor e -padx 5 -pady 4
+            pack $ww.esplit -anchor w -pady 4
             if {$values(18)<=1} {
                $ww.esplit.inp configure -state disabled
                $ww.esplit.lab configure -fg grey
@@ -541,7 +543,7 @@ proc set_src_options { isource } {
             pack $ww.esplit.help -side left -anchor w
             pack $ww.esplit.lab -side left -padx 10
             pack $ww.esplit.inp -padx 5 -fill x -expand true
-            pack $ww.esplit -anchor e -padx 5 -pady 4
+            pack $ww.esplit -anchor w -pady 4
             if {$values(18)<=1} {
                $ww.esplit.inp configure -state disabled
                $ww.esplit.lab configure -fg grey
@@ -553,7 +555,14 @@ proc set_src_options { isource } {
             checkbutton $ww.muphspout.but -text "Include fractional MU in any phase space output" \
                 -variable imuphspout
             pack $ww.muphspout.help $ww.muphspout.but -side left
-            pack $ww.muphspout -anchor e -padx 5 -pady 4
+            pack $ww.muphspout -anchor w -pady 4
+
+            #option to not do calibration run
+            frame $ww.calflag
+            button $ww.calflag.help -text "?" -command "help calflag"
+            checkbutton $ww.calflag.but -text "Omit calibration run through BEAMnrc library" -variable calflag
+            pack $ww.calflag.help $ww.calflag.but -side left
+            pack $ww.calflag -anchor w -pady 4
 
             #now, make another frame for entering all required files
 
@@ -621,6 +630,9 @@ proc set_src_options { isource } {
 
 		$w.vcusimbrowse configure -state disabled
 		$w.inpfilevcubrowse configure -state disabled
+  
+                $ww.calflag.but configure -state disabled
+
 	    }
 
             set hen_house $env(HEN_HOUSE)
@@ -843,6 +855,9 @@ proc config_MLC { w } {
 
            $w.vcusimbrowse configure -state disabled
 	   $w.inpfilevcubrowse configure -state disabled
+
+           .main_w.srcopt.optfrm.src2.calflag.but configure -state disabled
+
     } elseif {$i_MLC == 1} {
            $w.vcusimlab configure -fg black
            $w.inpfilevculab configure -fg black
@@ -852,6 +867,8 @@ proc config_MLC { w } {
 
            $w.vcusimbrowse configure -state normal
 	   $w.inpfilevcubrowse configure -state normal
+
+           .main_w.srcopt.optfrm.src2.calflag.but configure -state normal 
 
     }
 }
@@ -1403,9 +1420,10 @@ proc define_setting { } {
     global numsets iso1 iso2 iso3 ang1 ang2 ang3 dsource muI
 
     # 20 set points at a time
+   
 
-    for {set j 1} {$j<=[expr ($numsets-1)/20+1]} {incr j} {
-    
+    for {set j 1} {$j<=[expr max(1,($numsets-1)/20+1)]} {incr j} {
+
     toplevel .main_w.srcopt.sett$j
     set top .main_w.srcopt.sett$j
 
@@ -1472,11 +1490,13 @@ proc define_setting { } {
           $top.b.okb configure -state disabled
     }
 
-    if {$numsets==0} {
+    #must have at least 2 set points
+    if {$numsets==2} {
           $top.b.delb configure -state disabled
     }
 
     }
+
     # end loop over groups of 20
 
 }
@@ -1488,7 +1508,7 @@ proc add_setting { } {
     #a point
     set cur [expr $numsets/20+1]
     if {$cur > 1} {
-      for {set j 2} {$j<=$cur} {incr j} {
+      for {set j 1} {$j<=$cur} {incr j} {
     if {[winfo exists .main_w.srcopt.sett$j]==0} {
       #(re)create entry window
       toplevel .main_w.srcopt.sett$j
@@ -1589,7 +1609,8 @@ proc add_setting { } {
     entry $w.grid.e8$k -textvariable muI($i) -width 8
     grid configure $w.grid.e8$k -row $k -column 8
 
-    if {$numsets==1} {
+    #min. of 2 set points
+    if {$numsets==3} {
          #re-enable the delete last pair/group button
          $w.b.delb configure -state normal -command "del_setting"
     }
@@ -1603,7 +1624,7 @@ proc del_setting { } {
     set cur [expr ($numsets -2)/20+1]
 
     if {$cur > 1} {
-    for {set j 2} {$j<=$cur} {incr j} {
+    for {set j 1} {$j<=$cur} {incr j} {
     if {[winfo exists .main_w.srcopt.sett$j]==0} {
       #recreate input window we are actually deleting from
       toplevel .main_w.srcopt.sett$j
@@ -1695,7 +1716,8 @@ proc del_setting { } {
     }
     incr numsets -1
 
-    if {$numsets==0} {
+    #min no. of pts=2
+    if {$numsets==2} {
           set w .main_w.srcopt.sett$prev
           $w.b.delb configure -state disabled
     }

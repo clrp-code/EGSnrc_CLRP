@@ -23,7 +23,7 @@
 #
 #  Author:          Ernesto Mainegra-Hing, 2015
 #
-#  Contributors:
+#  Contributors:    Blake Walters
 #
 ###############################################################################
 */
@@ -115,9 +115,11 @@ public slots:
     void outputClosed();
     void launchReturned();
     void setConfigReader(EGS_ConfigReader *r);
+    void enable_gaspEdit();
 
 protected:
     void init();
+    void readDensityFile(QString dfile);
 private:
     bool output_is_active;
     PEGS_RunOutput *run_output;
@@ -126,5 +128,7 @@ private:
     int nelem;
     EGS_ConfigReader *config_reader;
     bool checkFields();
+    bool frt_err;
+    bool gasp_err;
 };
 #endif // PEGS_PAGE_H

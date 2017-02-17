@@ -49,8 +49,12 @@ export OMEGA_HOME=${HEN_HOUSE}omega
 PATH="${HEN_HOUSE}bin/$my_machine:$PATH"
 
 # Set dynamic library path
+# Only needed by egs_view pre-compiled for release without
+# hard-coded run-time search path (no -rpath)
 #
-export LD_LIBRARY_PATH="${HEN_HOUSE}egs++/dso/$my_machine:$LD_LIBRARY_PATH"
+if test -d $HEN_HOUSE/egs++/dso/linux-static; then
+   export LD_LIBRARY_PATH="${HEN_HOUSE}egs++/dso/linux-static:$LD_LIBRARY_PATH"
+fi
 
 # Now check for EGS_HOME.
 # If EGS_HOME is not empty and exists, check for $EGS_HOME/bin and

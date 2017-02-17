@@ -30,7 +30,7 @@
 
 
 /*! \file egs_spectra.cpp
- *  \brief Implements the spectra base class and several concrete spectra
+ *  \brief EGS_BaseSpectrum implementation and several concrete spectra
  *  \IK
  */
 
@@ -763,7 +763,8 @@ EGS_BaseSpectrum *EGS_BaseSpectrum::createSpectrum(EGS_Input *input) {
                         x[0] = eners[0];
                     }
                     for (int j=0; j<nbin1; j++) {
-                        x[ibin] = eners[ibin++];
+                        x[ibin] = eners[ibin];
+                        ibin++;
                         f[j] = mode == 0 ? probs[j]/(eners[ibin-1]-eners[ibin-2]) : probs[j];
                         if (itype != 0 && ibin > 1) {
                             if (x[ibin-1] <= x[ibin-2]) {

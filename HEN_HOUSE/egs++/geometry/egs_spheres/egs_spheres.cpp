@@ -182,7 +182,7 @@ int EGS_cSpheres::howfar(int ireg, const EGS_Vector &x,
              */
             R2b2 = R2[ireg] - bb2;
             if (R2b2 <= 0 && aa > 0) {
-                d = 1e-15;    // hopefully a truncation problem
+                d = boundaryTolerance;    // hopefully a truncation problem
             }
             else {
                 tmp = aa2 + R2b2;
@@ -190,7 +190,7 @@ int EGS_cSpheres::howfar(int ireg, const EGS_Vector &x,
                     tmp = sqrt(tmp);
                 }
                 else {
-                    if (tmp < -1e-2) {
+                    if (tmp < -boundaryTolerance) {
                         egsWarning("EGS_cSpheres::howfar: something is wrong\n");
                         egsWarning("  we think we are in region %d, but R2b2=%g",
                                    ireg,R2b2);
@@ -257,7 +257,7 @@ int EGS_cSpheres::howfar(int ireg, const EGS_Vector &x,
         egsWarning("\nGot nan\n");
     }
 
-    if (d < -1e-4) {
+    if (d < -boundaryTolerance) {
         egsWarning("\nNegative step?: %g\n",d);
         egsWarning("ireg=%d inew=%d aa=%g bb2=%g\n",ireg,direction_flag,aa,bb2);
         //exit(1);
@@ -718,6 +718,7 @@ extern "C" {
             result = new EGS_cSphericalShell(radii.size(), r, xo);
         }
         result->setName(input);
+        result->setBoundaryTolerance(input);
         result->setMedia(input);
         result->setLabels(input);
         return result;

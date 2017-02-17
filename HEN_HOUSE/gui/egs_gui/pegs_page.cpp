@@ -23,7 +23,8 @@
 #
 #  Author:          Ernesto Mainegra-Hing, 2015
 #
-#  Contributors:
+#  Contributors:    Blake Walters
+#                   Reid Townson
 #
 ###############################################################################
 */
@@ -48,14 +49,15 @@
 #include "egs_gui_widget.h"
 #include "egs_config_reader.h"
 #include "pegs_runoutput.h"
+#include <iostream>
 
-// #define PP_DEBUG
+//#define PP_DEBUG
 
 QStringList *elements = 0;
 
 TableEventHandler *tfilter = 0;
 
-const double rm=0.5110034;
+const double rm=0.5109989461;
 
 Element element_data[] = {
     {1,"H",1.0079,19.2,8.3748e-05},
@@ -181,7 +183,8 @@ void EGS_PegsPage::init()
   connect(cancel_button,SIGNAL(clicked()),this,SLOT(stopPegs()));
 
   new_data_file->setChecked(true); cancel_button->setEnabled(false);
-
+  frt_err=false;
+  gasp_err=false;
   pegs_process = new QProcess;
   connect(pegs_process,SIGNAL(readyReadStandardOutput()),this,SLOT(readPegsStdout()));
   connect(pegs_process,SIGNAL(readyReadStandardError()),this,SLOT(readPegsStderr()));
@@ -222,6 +225,38 @@ void EGS_PegsPage::densityIcruChanged( bool is_on) {
   dc_group->setEnabled( is_on );
   rho_group->setEnabled( !is_on );
   medtype_cbox->setEnabled( !is_on );
+  is_gas->setEnabled( !is_on );
+  enable_gaspEdit();
+  if(is_on) {
+    //see if a file has already been specified
+    if(!dc_file->text().isEmpty()) {
+    //now check to see if this points to a file that exists
+     QFileInfo dfi(dc_file->text());
+     if( !dfi.exists() ) {
+      QMessageBox::critical(this,"Warning",
+              QString("Density correction file %1 does not exist ?").arg(dc_file->text()),QMessageBox::Ok,0);
+      return;
+     }
+     else{
+      //read contents
+      readDensityFile(dc_file->text());
+     }
+   }
+  }
+}
+
+void EGS_PegsPage::enable_gaspEdit()
+{
+   if(is_gas->isChecked() && !dc_icru_check->isChecked()) {
+    gaspLabel->setEnabled(true);
+    gaspEdit->setEnabled(true);
+    gaspUnits->setEnabled(true);
+   }
+   else {
+    gaspLabel->setEnabled(false);
+    gaspEdit->setEnabled(false);
+    gaspUnits->setEnabled(false);
+   }
 }
 
 void EGS_PegsPage::medtypeChanged( const QString &s )
@@ -261,6 +296,13 @@ void EGS_PegsPage::getDensityFile() {
 #endif
   if( dfile.isEmpty() ) return;
   QFileInfo fi(dfile);
+  readDensityFile(dfile);
+  dc_file->setText(fi.absoluteFilePath());
+}
+
+void EGS_PegsPage::readDensityFile(QString dfile) {
+//open and read contents of dc file (dfile) & update medium
+//composition table & medium type
   QFile f(dfile);
   if( !f.open(QFile::ReadOnly) ) return;
   char buf[256]; f.readLine(buf,255); // ignore first line
@@ -284,20 +326,16 @@ void EGS_PegsPage::getDensityFile() {
     medtype_cbox->setCurrentIndex(Mixt);
     medtypeChanged("Mixture");
   }
-  //composition_table->horizontalHeader()->setLabel(1," Fraction by weight ");
   rho_le->setText(QString("%1").arg(rho));
   int j;
   for(j=0; j < composition_table->rowCount(); j++) {
     composition_table->setItem(j,0,0); composition_table->setItem(j,1,0);
-    //composition_table->setText(j,0,"");
-    //composition_table->setText(j,1,"");
   }
   for(j=0; j<nelem; j++) {
     int iz; double frac; data >> iz >> frac;
     composition_table->setItem(j,0,new QTableWidgetItem(QString::fromStdString(element_data[iz-1].symbol)));
     composition_table->setItem(j,1,new QTableWidgetItem(QString("%1").arg(frac)));
   }
-  dc_file->setText(fi.completeBaseName());// same as baseName(true) in Qt3 -- EMH
 }
 
 void EGS_PegsPage::newDataFileChecked(bool b) {
@@ -368,8 +406,17 @@ void EGS_PegsPage::startPegs() {
   if( append_to_datafile->isChecked() )
     args << "-a";//pegs_process->addArgument("-a");
   if( dc_icru_check->isChecked() ) {
+    QFileInfo dfi(dc_file->text());
+    if( !dfi.exists() ) {
+      QMessageBox::critical(this,"Error",
+              QString("Density correction file %1 does not exist ?").arg(dc_file->text()),QMessageBox::Ok,0);
+      return;
+    }
     args << "-d";//pegs_process->addArgument("-d");
-    args << dc_file->text();//pegs_process->addArgument();
+    if(dc_file->text().endsWith(".density")) 
+    args << dc_file->text().remove(dc_file->text().lastIndexOf(".density"),8);//pegs_process->addArgument();
+    else 
+    args << dc_file->text();
   }
   //QStringList list = pegs_process->arguments();
 #ifdef PP_DEBUG
@@ -410,7 +457,7 @@ void EGS_PegsPage::startPegs() {
   }
   if( comboBox2->currentText() == "kg/m**3" ) rho *= 0.001;//convert to g/cm**3
   ts << rho;
-  if( is_gas->isChecked() ) ts << ",GASP=1.0";
+  if( is_gas->isChecked() && !dc_icru_check->isChecked() && gaspEdit->text().toFloat()>0.0) ts << ",GASP= " << gaspEdit->text();
   ts << ",EPSTFL=" << dc_icru_check->isChecked() << ",IAPRIM="
      << rad_icru_check->isChecked() << ",IRAYL=" << rayleigh_check->isChecked()
      << " &END\n";
@@ -457,6 +504,7 @@ void EGS_PegsPage::readPegsStdout() {
   qDebug("In EGS_PegsPage::readPegsStdout()");
 #endif
   QString tmp = pegs_process->readAllStandardOutput();
+  gasp_err=tmp.contains(QString("YOU MUST DEFINE GASP"));
   run_output->insertText(tmp);
 }
 
@@ -465,6 +513,7 @@ void EGS_PegsPage::readPegsStderr() {
   qDebug("In EGS_PegsPage::readPegsStderr()");
 #endif
   QString tmp = pegs_process->readAllStandardError();
+  frt_err=tmp.contains(QString("Fortran runtime error"));
   run_output->insertText(tmp);
 }
 
@@ -472,7 +521,15 @@ void EGS_PegsPage::pegsFinished() {
 #ifdef PP_DEBUG
   qDebug("In EGS_PegsPage::pegsFinished()");
 #endif
-  if( pegs_process->exitStatus() == 0 ) // QProcess::NormalExit = 0
+  if(frt_err)
+    QMessageBox::critical(this,"Error",
+     QString("PEGS failed with runtime error."),
+      QMessageBox::Ok,0);
+  else if(gasp_err)
+    QMessageBox::critical(this,"Error",
+     QString("PEGS failed: Define medium as gas."),
+      QMessageBox::Ok,0);
+  else if( pegs_process->exitStatus() == 0 ) // QProcess::NormalExit = 0
     QMessageBox::information(this,"PEGS finished","PEGS finished successfuly",
        QMessageBox::Ok);
   else                                  // QProcess::CrashExit = 1
@@ -505,6 +562,8 @@ bool EGS_PegsPage::checkFields() {
     }
     nelem=0;
     for(int j=0; j<20; j++) {
+      if( !composition_table->item(j,0) ||
+          !composition_table->item(j,1) ) break;
       if( composition_table->item(j,0)->text().isEmpty() ||
           composition_table->item(j,1)->text().isEmpty() ) break;
       nelem = j+1;
