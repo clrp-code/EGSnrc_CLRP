@@ -350,7 +350,7 @@ public:
             return 0;
         }
         int itmp = ireg;
-        EGS_Float d = 1e30;
+        EGS_Float d = veryFar;
         for (int j=N-1; j>=0; j--) {
             int l = itmp/n[j];
             EGS_Float t = g[j]->howfarToOutside(l,x,u);
@@ -436,7 +436,11 @@ public:
                 EGS_Float tleft = t;
                 int ii = g[j]->isWhere(x);
                 EGS_Float ttot = 0;
-                while (1) {
+                for (EGS_I64 loopCount=0; loopCount<=loopMax; ++loopCount) {
+                    if (loopCount == loopMax) {
+                        egsFatal("EGS_NDGeometry::howfar: Too many iterations were required! Input may be invalid, or consider increasing loopMax.");
+                        return -1;
+                    }
                     EGS_Float tt = tleft;
                     int inew = g[j]->howfar(ii,tmp,u,tt);
                     if (inew == ii) {
@@ -490,7 +494,7 @@ public:
     };
 
     EGS_Float hownear(int ireg, const EGS_Vector &x) {
-        EGS_Float tmin = 1e30;
+        EGS_Float tmin = veryFar;
         if (ireg >= 0) {
             int itmp = ireg;
             for (int j=N-1; j>=0; j--) {
@@ -523,7 +527,7 @@ public:
             return sqrt(s2);
         }
         else {
-            EGS_Float tmin = 1e30;
+            EGS_Float tmin = veryFar;
             for (int j=0; j<N; j++) {
                 EGS_Float t;
                 int i = g[j]->isWhere(x);
@@ -779,7 +783,7 @@ public:
         EGS_Vector x(X);
         int imed;
         if (ireg < 0) {
-            t = 1e30;
+            t = veryFar;
             ireg = howfar(ireg,x,u,t,&imed);
             if (ireg < 0) {
                 return 0;
@@ -815,7 +819,7 @@ public:
             icx = 0;
         }
         else               {
-            uxi = 1e33;
+            uxi = veryFar*1e3;
             dirx =  1;
             icx = 1;
         }
@@ -830,7 +834,7 @@ public:
             icy = 0;
         }
         else               {
-            uyi = 1e33;
+            uyi = veryFar*1e3;
             diry =  1;
             icy = 1;
         }
@@ -845,7 +849,7 @@ public:
             icz = 0;
         }
         else               {
-            uzi = 1e33;
+            uzi = veryFar*1e3;
             dirz =  1;
             icz = 1;
         }
@@ -1489,7 +1493,7 @@ public:
         normvec = (n3-n1)%(n2-n1);
         dpi[3] = normvec.length2();
         disti[3] = normvec*(n0x+n1);
-        EGS_Float mindist = 1e30, mindp=1;
+        EGS_Float mindist = veryFar, mindp=1;
         for (int i=0; i<4; ++i) {
             if (disti[i]*mindp < mindist*dpi[i]) {
                 mindist = disti[i];
@@ -1763,7 +1767,11 @@ public:
         EGS_Float t_left = t;
         EGS_Vector xtmp(x);
         EGS_Float ttot = 0;
-        while (1) {
+        for (EGS_I64 loopCount=0; loopCount<=loopMax; ++loopCount) {
+            if (loopCount == loopMax) {
+                egsFatal("EGS_XYZRepeater::howfar: Too many iterations were required! Input may be invalid, or consider increasing loopMax.");
+                return -1;
+            }
             EGS_Float this_t = t_left;
             EGS_Vector xp(xtmp - translation[cell]);
             int inew = g->howfar(-1,xp,u,this_t,newmed,normal);

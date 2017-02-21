@@ -25,6 +25,7 @@
 #
 #  Contributors:    Ernesto Mainegra-Hing
 #                   Frederic Tessier
+#                   Reid Townson
 #                   Randle Taylor, (On behalf of the Carleton Laboratory
 #                   for Radiotherapy Physics)
 #
@@ -159,7 +160,7 @@ int EGS_cSpheres::howfar(int ireg, const EGS_Vector &x,
                          const EGS_Vector &u, EGS_Float &t, int *newmed, EGS_Vector *normal) {
     int direction_flag=-1;  /* keep track of direction entering or exiting a
                              sphere boundary */
-    double d=1e35;      // set a maximum distance from a boundary
+    double d=veryFar*1e5;   // set a maximum distance from a boundary
 
     EGS_Vector xp(x - xo);
     double aa = xp*u, aa2 = aa*aa;
