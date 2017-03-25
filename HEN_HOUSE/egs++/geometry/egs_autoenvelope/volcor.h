@@ -444,7 +444,8 @@ public:
             egsInformation(" Bounding shape volume       = %.5E cm^3\n", bounds_volume);
             egsInformation(" Inscribed geometry volume   = %.5E cm^3\n", inscribed_volume);
             options->rng->describeRNG();
-        }else{
+        }
+        else {
             egsInformation(" Time taken                  = %.4f s\n", time);
             egsInformation(" Volume correction file      = %s\n", vc_file.c_str());
         }

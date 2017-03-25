@@ -67,12 +67,12 @@ EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
                              const vector<AEnvelopeAux> inscribed, const string &Name, bool debug, string output_vc_file) :
     EGS_BaseGeometry(Name), base_geom(base_geom), debug_info(debug), output_vc(output_vc_file) {
 
-    if (!allowedBaseGeomType(base_geom->getType())){
+    if (!allowedBaseGeomType(base_geom->getType())) {
 
         string msg("EGS_AEnvelope:: '%s' is not allowed as a base geometry. Valid choices are:\n\t");
 
         int end = (int)(sizeof(allowed_base_geom_types)/sizeof(string));
-        for (int i=0; i < end; i++){
+        for (int i=0; i < end; i++) {
             msg += allowed_base_geom_types[i] + " ";
         }
         msg += "\n";
