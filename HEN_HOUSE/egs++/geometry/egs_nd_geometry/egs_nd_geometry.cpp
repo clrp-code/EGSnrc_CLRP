@@ -607,7 +607,7 @@ EGS_XYZGeometry *EGS_XYZGeometry::constructGeometry(const char *dens_file,
         bool is_gzip = (tempf.get() == 0x1f && tempf.get() == 0x8b);
         tempf.close();
 
-        if (is_gzip){
+        if (is_gzip) {
 #ifdef HAS_GZSTREAM
             binf.open(dens_file);
             data = &binf;
@@ -615,7 +615,8 @@ EGS_XYZGeometry *EGS_XYZGeometry::constructGeometry(const char *dens_file,
             egsWarning("Tried to read gzipped egsphant but egs_ndgeometry was not compiled with gzip support\n");
             return 0;
 #endif
-        }else{
+        }
+        else {
             textf.open(dens_file);
             data = &textf;
         }
@@ -1161,7 +1162,7 @@ extern "C" {
                 EGS_XYZGeometry *result =
                     EGS_XYZGeometry::constructGeometry(dens_file.c_str(),ramp_file.c_str(),dens_or_egsphant_or_interfile);
 
-                if (result){
+                if (result) {
                     result->setName(input);
                     result->setBoundaryTolerance(input);
                 }

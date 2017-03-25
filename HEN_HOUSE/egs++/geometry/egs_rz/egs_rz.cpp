@@ -200,15 +200,15 @@ vector<EGS_Float> EGS_RZ_LOCAL getZPlanes(EGS_Input *input) {
 
 }
 
-bool allIncreasing(vector<EGS_Float> vec){
+bool allIncreasing(vector<EGS_Float> vec) {
 
-    if (vec.size() == 0){
+    if (vec.size() == 0) {
         return true;
     }
 
     EGS_Float last = vec[0];
-    for (size_t i=1; i < vec.size(); i++){
-        if (vec[i] <= last){
+    for (size_t i=1; i < vec.size(); i++) {
+        if (vec[i] <= last) {
             return false;
         }
         last = vec[i];
