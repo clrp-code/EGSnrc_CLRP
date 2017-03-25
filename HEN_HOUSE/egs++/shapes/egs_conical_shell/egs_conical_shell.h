@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 #
-#  EGSnrc egs++ circle shape headers
+#  EGSnrc egs++ conical shell headers
 #  Copyright (C) 2015 National Research Council Canada
 #
 #  This file is part of EGSnrc.
@@ -21,10 +21,14 @@
 #
 ###############################################################################
 #
-#  Author:          Randle Taylor (on behalf of Carleton Laboratory for
-                    Radiotherapy Physics)
+#  Author:          Randle Taylor, 2016
 #
 #  Contributors:
+#
+###############################################################################
+#
+# egs_conical_shell was developed for Carleton Laboratory for Radiotherapy
+# Physics (Rowan Thomson, Dave Rogers).
 #
 ###############################################################################
 */
