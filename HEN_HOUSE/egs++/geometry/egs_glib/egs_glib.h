@@ -1,7 +1,7 @@
 /*
 ###############################################################################
 #
-#  EGSnrc egs++ envelope geometry headers
+#  EGSnrc egs++ glib geometry headers
 #  Copyright (C) 2015 National Research Council Canada
 #
 #  This file is part of EGSnrc.
@@ -21,10 +21,14 @@
 #
 ###############################################################################
 #
-#  Author:          Randle Taylor (randle.taylor@gmail.com) on behalf of
-#                   the Carleton Laboratory for Radiotherapy Physics
+#  Author:          Randle Taylor, 2016
 #
 #  Contributors:
+#
+###############################################################################
+#
+# egs_glib was developed for Carleton Laboratory for Radiotherapy
+# Physics (Rowan Thomson, Dave Rogers).
 #
 ###############################################################################
 */

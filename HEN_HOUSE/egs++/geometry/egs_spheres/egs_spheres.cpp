@@ -26,8 +26,7 @@
 #  Contributors:    Ernesto Mainegra-Hing
 #                   Frederic Tessier
 #                   Reid Townson
-#                   Randle Taylor, (On behalf of the Carleton Laboratory
-#                   for Radiotherapy Physics)
+#                   Randle Taylor
 #
 ###############################################################################
 */

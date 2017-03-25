@@ -24,8 +24,7 @@
 #  Author:          Iwan Kawrakow, 2005
 #
 #  Contributors: Reid Townson
-#                Randle Taylor, 2016 (On behalf of the Carleton Laboratory for
-#                Radiotherapy Physics)
+#                Randle Taylor
 #
 ###############################################################################
 */
