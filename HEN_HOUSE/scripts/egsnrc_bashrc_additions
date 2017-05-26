@@ -48,14 +48,6 @@ export OMEGA_HOME=${HEN_HOUSE}omega
 #
 PATH="${HEN_HOUSE}bin/$my_machine:$PATH"
 
-# Set dynamic library path
-# Only needed by egs_view pre-compiled for release without
-# hard-coded run-time search path (no -rpath)
-#
-if test -d $HEN_HOUSE/egs++/dso/linux-static; then
-   export LD_LIBRARY_PATH="${HEN_HOUSE}egs++/dso/linux-static:$LD_LIBRARY_PATH"
-fi
-
 # Now check for EGS_HOME.
 # If EGS_HOME is not empty and exists, check for $EGS_HOME/bin and
 # $EGS_HOME/bin/$my_machine and create them if they don't exist.
@@ -92,7 +84,13 @@ alias dosxyznrc_gui='$OMEGA_HOME/progs/gui/dosxyznrc/dosxyznrc_gui.tcl'
 alias dosxyz_gui='$OMEGA_HOME/progs/gui/dosxyznrc/dosxyznrc_gui.tcl'
 alias beamdp_gui='$OMEGA_HOME/progs/gui/beamdp/beamdp_gui.tcl'
 alias pprocess='$HEN_HOUSE/scripts/pprocess'
-
+#
+# Alias needed by egs_view pre-compiled for release without
+# hard-coded run-time search path (no -rpath)
+#
+if test -d $HEN_HOUSE/egs++/dso/linux-static; then
+   alias egs_view='(LD_LIBRARY_PATH=${HEN_HOUSE}egs++/dso/linux-static/ ${HEN_HOUSE}pieces/linux/egs_view_64)'
+fi
 # OS X specific settings
 canonical_system=$( cat $EGS_CONFIG | grep "canonical_system =" | sed 's/canonical_system = //' )
 is_darwin=$(echo $canonical_system | grep -i darwin)
@@ -111,10 +109,14 @@ export HEN_HOUSE PATH
 
 # Now check for local system wide sh additions
 #
-test -f $HEN_HOUSE/scripts/local_bashrc_additions && \. $HEN_HOUSE/scripts/local_bashrc_additions
+if test -f $HEN_HOUSE/scripts/local_bashrc_additions; then
+    source $HEN_HOUSE/scripts/local_bashrc_additions
+fi
 
 # Every individual user may customize their settings by creating a
 # .egsnrc_bashrc_additions file in their HOME directory.
 # Source this file if available
 #
-test -f $HOME/.egsnrc_bashrc_additions && \. $HOME/.egsnrc_bashrc_additions
+if test -f $HOME/.egsnrc_bashrc_additions; then
+    source $HOME/.egsnrc_bashrc_additions
+fi
