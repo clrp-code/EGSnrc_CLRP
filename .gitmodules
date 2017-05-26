@@ -1,0 +1,3 @@
+[submodule "HEN_HOUSE/user_codes/egs_brachy"]
+	path = HEN_HOUSE/user_codes/egs_brachy
+	url = git@github.com:randlet/egs_brachy.git
