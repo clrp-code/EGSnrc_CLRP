@@ -266,6 +266,9 @@ if test "x$new_egs_home" = xyes; then
     copy_list=
     for uc in $test_list; do
         if test -d $HEN_HOUSE/user_codes/$uc && test $uc != pegs4 && test $uc != bin; then
+            if test $uc = egs_brachy; then
+                uc="$uc/$uc"
+            fi
             copy_list="$copy_list $uc"
         fi
     done
