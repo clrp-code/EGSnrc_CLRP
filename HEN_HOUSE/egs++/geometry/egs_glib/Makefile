@@ -22,7 +22,15 @@ $(DSO2)glib.$(obje):
 
 $(ABS_DSO)$(libpre)egs_glib$(libext):
 
+extra_dep = ndgeom egsplanes
+
 $(make_depend)
+
+ndgeom:
+	cd ..$(DSEP)egs_nd_geometry$(DSEP) && make
+
+egsplanes:
+	cd ..$(DSEP)egs_planes$(DSEP) && make
 
 
 clean:
