@@ -906,7 +906,13 @@ comp_xsections = $COMP-XDATA-DEFAULT;
 photonuc_xsections = $PHOTONUC-XDATA-DEFAULT;
 "EMH:emf"
 ExIN=$ExDEF;EyIN=$EyDEF;EzIN=$EzDEF;
+" Initially set to input values, could change with regions"
+" by converting it to an array over all regions. This is  "
+" currently implemented ONLY for the C++ applications     "
 BxIN=$BxDEF;ByIN=$ByDEF;BzIN=$BzDEF; EMLMTIN=$EMLMTDEF;
+Bx=BxIN;    By=ByIN;    Bz=BzIN;
+Bx_new=Bx;  By_new=By;  Bz_new=Bz;
+
 "DO i=1,len(eii_xfile) [ eii_xfile(i:i) = ' '; ]"
 DO i=1,$MXMED [
     iraylm(i) = 0;   "Rayleigh data available?"
@@ -915,7 +921,7 @@ DO i=1,$MXMED [
       " set all thresholds to zero "
     /ae(i),ap(i),ue(i),up(i),te(i),thmoll(i)/=0;
 ]
-DO i=1,$MXSHELL [
+DO i=1,$MXSHXSEC [
   DO j=1,$MXELEMENT [ binding_energies(i,j) = 0; ]
 ]
 ibrdst = $IBRDST-DEFAULT;      " brems angular sampling"
@@ -940,9 +946,6 @@ kmpi = 12; kmpo = 8; dunit = 1;
 rng_seed = 999999;
 latchi = 0;
 
-" The rest mass value is as recommended by CODATA 2014
-" http://physics.nist.gov/cgi-bin/cuu/Value?mec2mev
-rm = 0.5109989461;
 rmt2 = 2*rm; rmsq = rm*rm;
 
 pi = 4*datan(1d0); twopi = 2*pi; pi5d2 = 2.5*pi;
@@ -1396,7 +1399,47 @@ DO i=l,1,-1 [
 ]
 return; end;
 
+"==============================================================================
+subroutine replace_env(fname);
+"==============================================================================
+"subroutine to replace environment variables (beginning with $) with their"
+"full names or ~ with the full name of $HOME"
+"Assumes environment variable or ~ appears only at the beginning of the"
+"file name"
+character*(*) fname;
+character*256 dirname;
+integer indsep,ind1,ind2;
 
+indsep = index(fname,$file_sep);
+IF(indsep <= 0) return;
+"hope that the user has just supplied the file name"
+"and it is in the current directory"
+
+ind1=index(fname,'$');
+ind2=index(fname,'~');
+
+"examine first character of name"
+IF(ind1=1)[
+    "get the environment variable"
+    call getenv(fname(2:indsep-1),dirname);
+    IF(dirname=' ')[
+      $egs_fatal('(a,a/,a)',' Error in file name: ',$cstring(fname),
+  ' First element in name does not specify a defined environment variable.');
+   ]
+   fname=$cstring(dirname)//fname(indsep:);
+   $egs_info('(//a,a/)',' Retrieving file: ',$cstring(fname));
+]
+ELSEIF(ind2=1)[
+    call getenv('HOME',dirname);
+    IF(dirname=' ')[
+      $egs_fatal('(a,a/,a)',' Error in file name: ',$cstring(fname),
+  ' HOME is undefined.');
+   ]
+   fname=$cstring(dirname)//fname(indsep:);
+   $egs_info('(//a,a/)',' Retrieving file: ',$cstring(fname));
+]
+return;
+end;
 
 "=============================================================================
 subroutine egs_get_usercode(ucode);

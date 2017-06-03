@@ -25,6 +25,7 @@
 #
 #  Contributors:    Frederic Tessier
 #                   Reid Townson
+#                   Ernesto Mainegra-Hing
 #
 ###############################################################################
 */
@@ -988,7 +989,12 @@ void EGS_XYZGeometry::voxelizeGeometry(EGS_Input *input) {
         delete [] rhor;
         rhor = 0;
     }
+    if (bfactor) {
+        delete [] bfactor;
+        bfactor = 0;
+    }
     region_media = new short [nreg];
+
     bool hrs = geometry->hasRhoScaling();
     if (hrs) {
         has_rho_scaling = true;
@@ -997,6 +1003,16 @@ void EGS_XYZGeometry::voxelizeGeometry(EGS_Input *input) {
     else {
         has_rho_scaling = false;
     }
+
+    bool hbs = geometry->hasBScaling();
+    if (hbs) {
+        has_B_scaling = true;
+        bfactor = new EGS_Float [nreg];
+    }
+    else {
+        has_B_scaling = false;
+    }
+
     EGS_Vector v1(xp->position(0),yp->position(0),zp->position(0));
     EGS_Vector v2(xp->position(nx),yp->position(ny),zp->position(nz));
     egsInformation("  top/left/front corner   : (%g,%g,%g)\n",v1.x,v1.y,v1.z);
@@ -1022,11 +1038,17 @@ void EGS_XYZGeometry::voxelizeGeometry(EGS_Input *input) {
                     if (hrs) {
                         rhor[ir] = geometry->getRelativeRho(ir);
                     }
+                    if (hbs) {
+                        bfactor[ir] = geometry->getBScaling(ir);
+                    }
                 }
                 else {
                     region_media[ir] = -1;
                     if (hrs) {
                         rhor[ir] = 1;
+                    }
+                    if (hbs) {
+                        bfactor[ir] = 1;
                     }
                 }
             }
@@ -1165,6 +1187,7 @@ extern "C" {
                 if (result) {
                     result->setName(input);
                     result->setBoundaryTolerance(input);
+                    result->setBScaling(input);
                 }
 
                 return result;
