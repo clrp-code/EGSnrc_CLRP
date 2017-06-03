@@ -15,9 +15,14 @@ lib_files = egs_rz
 
 link2_libs = egspp egs_planes egs_cylinders egs_ndgeometry
 
+extra_dep = ndgeom
+
 include $(SPEC_DIR)egspp_libs.spec
 
 $(make_depend)
+
+ndgeom:
+	cd ..$(DSEP)egs_nd_geometry$(DSEP) && make
 
 $(DSO1)egs_spectra.$(obje): $(config1h) \
     egs_rndm.h egs_object_factory.h egs_alias_table.h egs_vector.h \
