@@ -8,32 +8,25 @@ include $(EGS_CONFIG)
 include $(SPEC_DIR)egspp.spec
 include $(SPEC_DIR)egspp_$(my_machine).conf
 
-
 DEFS = $(DEF1)
 
 library = egs_glib
 lib_files = egs_glib
-
 link2_libs = egspp egs_ndgeometry egs_planes
+
+.PHONY: ndgeom clean
 
 include $(SPEC_DIR)egspp_libs.spec
 
-$(DSO2)glib.$(obje):
-
-$(ABS_DSO)$(libpre)egs_glib$(libext):
-
-extra_dep = ndgeom egsplanes
-
 $(make_depend)
 
+$(DSO2)$(library).$(obje): ndgeom
+
+$(ABS_DSO)$(libpre)$(library)$(libext): ndgeom
+
 ndgeom:
-	cd ..$(DSEP)egs_nd_geometry$(DSEP) && make
-
-egsplanes:
-	cd ..$(DSEP)egs_planes$(DSEP) && make
-
+	cd ..$(DSEP)egs_nd_geometry && make
 
 clean:
-	rm -f $(ABS_DSO)$(libpre)egs_glib$(libext)
-	rm -f $(DSO2)egs_glib.$(obje)
-
+	rm -f $(ABS_DSO)$(libpre)$(library)$(libext)
+	rm -f $(DSO2)$(library).$(obje)

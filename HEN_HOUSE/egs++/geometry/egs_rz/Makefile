@@ -12,22 +12,27 @@ DEFS = $(DEF1) -Wall
 
 library = egs_rz
 lib_files = egs_rz
-
 link2_libs = egspp egs_planes egs_cylinders egs_ndgeometry
 
-extra_dep = ndgeom
+.PHONY: ndgeom cyls planes clean
 
 include $(SPEC_DIR)egspp_libs.spec
 
 $(make_depend)
 
+$(DSO2)$(library).$(obje): ndgeom cyls planes
+
+$(ABS_DSO)$(libpre)$(library)$(libext): ndgeom cyls planes
+
 ndgeom:
-	cd ..$(DSEP)egs_nd_geometry$(DSEP) && make
+	cd ..$(DSEP)egs_nd_geometry && make
 
-$(DSO1)egs_spectra.$(obje): $(config1h) \
-    egs_rndm.h egs_object_factory.h egs_alias_table.h egs_vector.h \
-    egs_input.h egs_math.h
+cyls:
+	cd ..$(DSEP)egs_cylinders && make
 
-$(DSO2)brachy_seeds.$(obje): ..$(DSEP)egs_planes$(DSEP)egs_planes.h \
-                         ..$(DSEP)egs_cylinders$(DSEP)egs_cylinders.h \
-                         ..$(DSEP)egs_nd_geometry$(DSEP)egs_nd_geometry.h \
+planes:
+	cd ..$(DSEP)egs_planes && make
+
+clean:
+	rm -f $(ABS_DSO)$(libpre)$(library)$(libext)
+	rm -f $(DSO2)$(library).$(obje)
