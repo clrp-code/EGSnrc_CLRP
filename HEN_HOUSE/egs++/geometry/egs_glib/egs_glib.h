@@ -155,6 +155,43 @@ The above two definitions would result in a geometry equivalent to:
 
 \endverbatim
 
+Creating geometries based on egsphant files
+-------------------------------------------
+ egs_glib can also be used to construct an EGS_XYZGeometry based on
+ an existing egsphant file.
+
+\verbatim
+
+    :start geometry:
+        library = egs_glib
+        type = egsphant
+        name = my_egsphant_geom
+        egsphant file = /path/to/some/egsphant/file
+        density file = /path/to/density/file
+    :stop geometry:
+
+\endverbatim
+
+by specifying `type=egsphant` in your input, egs_glib will parse the
+egsphant file (either plane .egsphant text file or gzipped .egsphant.gz file)
+you specify and construct a matching geometry.  The density file is
+required so that the geometry may set the relative density of each
+region correctly. Typically you would just set the `density file`
+key to point to the pegs4dat file that you will
+be using for your simulation although any file with a format:
+
+\verbatim
+
+MEDIUM=WATER
+RHO=1.000
+MEDIUM=AIR
+RHO=1.2E-3
+
+\endverbatim
+
+will also work fine.
+
+
 
 Examples
 --------
