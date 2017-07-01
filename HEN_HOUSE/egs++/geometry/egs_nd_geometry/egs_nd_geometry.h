@@ -305,6 +305,14 @@ A simple example:
 :stop geometry definition:
 \endverbatim
 \image html egs_ndgeometry.png "A simple example"
+
+Optional Features
+-----------------
+
+In order to use the gzip functionality you must have the egspp-geometry-lib-extras
+installed.  Due to NRC licensing requirements this code is distributed separately and
+can be obtained from https://github.com/clrp-code/egspp-geometry-lib-extras/ .
+
 */
 class EGS_NDG_EXPORT EGS_NDGeometry : public EGS_BaseGeometry {
 
@@ -368,7 +376,7 @@ public:
                EGS_Float &t, int *newmed=0, EGS_Vector *normal=0) {
         if (ireg >= 0) {
             int itmp = ireg;
-            int inext = -1, idelta, lnew_j;
+            int inext = -1, idelta, lnew_j=0;
             for (int j=N-1; j>=0; j--) {
                 int l = itmp/n[j];
                 int lnew = g[j]->howfar(l,x,u,t,0,normal);
@@ -558,7 +566,7 @@ public:
     void printInfo() const;
 
     virtual void getLabelRegions(const string &str, vector<int> &regs);
-    int ndRegions(int r, int dim, int dimk, int k, vector<int> &regs);
+    void ndRegions(int r, int dim, int dimk, int k, vector<int> &regs);
 
 protected:
 
@@ -1795,6 +1803,8 @@ public:
             xtmp += u*this_t;
             cell = next_cell;
         }
+
+        return ireg;
     };
 
     EGS_Float hownear(int ireg, const EGS_Vector &x) {

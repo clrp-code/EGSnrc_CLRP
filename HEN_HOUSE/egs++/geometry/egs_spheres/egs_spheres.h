@@ -23,8 +23,8 @@
 #
 #  Author:          Iwan Kawrakow, 2005
 #
-#  Contributors: Reid Townson
-#                Randle Taylor
+#  Contributors:    Reid Townson
+#                   Randle Taylor
 #
 ###############################################################################
 */
@@ -88,8 +88,29 @@ Examples of the usage of sets of spheres can be found in the
 \c cones.geom, \c hemisphere.geom, \c mushroom.geom, \c rounded_ionchamber.geom
 and \c I6702.inp example geometry files.
 
-<<<<<<< HEAD
-here is also a second geometry type called EGS_cSphericalShell that allows you
+
+A simple example:
+\verbatim
+:start geometry definition:
+    :start geometry:
+        name        = my_spheres
+        library     = egs_spheres
+        midpoint = 0 0 0
+        radii = 1 2 3
+        :start media input:
+            media = water air water
+            set medium = 1 1
+            set medium = 2 2
+        :stop media input:
+    :stop geometry:
+
+    simulation geometry = my_spheres
+
+:stop geometry definition:
+\endverbatim
+\image html egs_spheres.png "A simple example with clipping plane 1,0,0,0"
+
+There is also a second geometry type called EGS_cSphericalShell that allows you
 to construct a geometry of concentric spheres where the innermost region is
 considered xternal to the geometry (i.e. it is a hollow spherical shell). Input
 for this geometry looks like:
@@ -114,28 +135,6 @@ The above geometry would have two regions, region 0 being `1 <= R <= 2` (medium
 M1), and region 1 being 2 <= R <= 3 (medium M1).  Particles with `R < 1` and
 `R > 3` would be considered outside the geometry.
 
-=======
-A simple example:
-\verbatim
-:start geometry definition:
-    :start geometry:
-        name        = my_spheres
-        library     = egs_spheres
-        midpoint = 0 0 0
-        radii = 1 2 3
-        :start media input:
-            media = water air water
-            set medium = 1 1
-            set medium = 2 2
-        :stop media input:
-    :stop geometry:
-
-    simulation geometry = my_spheres
-
-:stop geometry definition:
-\endverbatim
-\image html egs_spheres.png "A simple example with clipping plane 1,0,0,0"
->>>>>>> upstream/develop
 */
 class EGS_SPHERES_EXPORT EGS_cSpheres : public EGS_BaseGeometry {
 

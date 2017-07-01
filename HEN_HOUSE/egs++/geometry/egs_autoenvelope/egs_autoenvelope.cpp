@@ -71,16 +71,22 @@ EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
                              const vector<AEnvelopeAux> inscribed, const string &Name, bool debug, string output_vc_file) :
     EGS_BaseGeometry(Name), base_geom(base_geom), debug_info(debug), output_vc(output_vc_file) {
 
-    if (!allowedBaseGeomType(base_geom->getType())) {
+    bool volcor_available = allowedBaseGeomType(base_geom->getType());
+    bool volcor_requested = inscribed.size() > 0 && inscribed[0].vcopts->mode == CORRECT_VOLUME;
 
-        string msg("EGS_AEnvelope:: '%s' is not allowed as a base geometry. Valid choices are:\n\t");
+    if (!volcor_available && volcor_requested) {
+
+        string msg(
+            "EGS_AEnvelope:: Volume correction is not available for geometry type '%s (%s)'. "
+            "Geometry types must implement getMass.  Valid choices are:\n\t"
+        );
 
         int end = (int)(sizeof(allowed_base_geom_types)/sizeof(string));
         for (int i=0; i < end; i++) {
             msg += allowed_base_geom_types[i] + " ";
         }
-        msg += "\n";
-        egsFatal(msg.c_str(), base_geom->getType().c_str());
+        msg += "\nPlease set `correction type = none -or- zero` or use a different base geometry type.\n";
+        egsFatal(msg.c_str(), base_geom->getType().c_str(), base_geom->getName().c_str());
     }
 
 

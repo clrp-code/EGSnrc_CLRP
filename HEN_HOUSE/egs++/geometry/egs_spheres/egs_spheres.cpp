@@ -165,7 +165,7 @@ int EGS_cSpheres::howfar(int ireg, const EGS_Vector &x,
     double aa = xp*u, aa2 = aa*aa;
     double bb2 = xp.length2();
 
-    double rad, R2b2, tmp;
+    double rad=0, R2b2, tmp;
 
     // check if we are inside of any regions at all? ...
     if (ireg>=0) {
@@ -277,12 +277,14 @@ int EGS_cSpheres::howfar(int ireg, const EGS_Vector &x,
     // check desired step size against this d
     if (d<=t) {
         t=d;
-        if (newmed) if (direction_flag >= 0) {
+        if (newmed) {
+            if (direction_flag >= 0) {
                 *newmed = medium(direction_flag);
             }
             else {
                 *newmed = -1;
             }
+        }
         if (normal) {
             EGS_Vector n(xp + u*d);
             *normal = n*(1/rad);
