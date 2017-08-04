@@ -98,6 +98,9 @@ would be tedious and error prone for base geometries with large numbers of
 regions and many inscribed geometries in arbitrary orientations.  Instead of
 this manual process, the Auto Envelope uses a Monte Carlo simulation to
 determine which regions of the base geometry contain inscribed geometries.
+This Monte Carlo process can also optionally be used to correct voxel volumes
+of the base geometry.
+
 
 As an example, consider a 5.1cm x 5.1cm x 5.1cm EGS_XYZGeometry phantom
 subdivided into 0.2cm x 0.2cm x 0.2cm voxels (51^3=132 651 voxels), with 125
@@ -111,7 +114,7 @@ This can make simulations with a fast envelope run an order of magnitude
 faster than the same simulation using a plain EGS_EnvelopeGeometry.
 
 
-Region Dection / Volume Correction Algorithm
+Region Discovery / Volume Correction Algorithm
 --------------------------------------------
 
 (Note: Currently the auto envelope can only accomodate a single type of inscribed
@@ -216,9 +219,9 @@ There is an example geometry included in the examples/seeds_in_xyz_aenv.geom fil
 
         :stop transformations:
 
-        :start volume correction:
+        :start region discovery:
 
-            correction type = correct # optional: none(default), correct, zero volume
+            action = discover # optional: discover (default), discover and correct volume, discover and zero volume
 
             volume correction file = phantom.autoenv.volcor # optional (if using omit below)
 
@@ -247,7 +250,7 @@ There is an example geometry included in the examples/seeds_in_xyz_aenv.geom fil
             :stop rng definition:
 
 
-        :stop volume correction:
+        :stop region discovery:
 
     :stop inscribed geometry:
 
@@ -270,10 +273,10 @@ volume correction block like the following for the inscribed geometry:
 
 \verbatim
 
-   :start volume correction:
-       correction type = correct # optional: none(default), correct, zero volume
+   :start region discovery:
+       action = discover # optional: discover(default), discover and correct volume, discover and zero volume
        volume correction file = phantom.autoenv.volcor
-   :stop volume correction:
+   :stop region discovery:
 
 \endverbatim
 
