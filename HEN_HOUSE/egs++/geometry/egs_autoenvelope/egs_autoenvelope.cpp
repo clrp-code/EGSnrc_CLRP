@@ -85,7 +85,7 @@ EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
         for (int i=0; i < end; i++) {
             msg += allowed_base_geom_types[i] + " ";
         }
-        msg += "\nPlease set `correction type = none -or- zero` or use a different base geometry type.\n";
+        msg += "\nPlease set `action = discover -or- correct and zero volume` or use a different base geometry type.\n";
         egsFatal(msg.c_str(), base_geom->getType().c_str(), base_geom->getName().c_str());
     }
 
@@ -1021,10 +1021,10 @@ extern "C" {
 
         delete trans_input;
 
-        EGS_Input *volcor_input = inscribed_input->takeInputItem("volume correction");
+        EGS_Input *volcor_input = inscribed_input->takeInputItem("region discovery");
         VCOptions *vcopts = new VCOptions(volcor_input);
         if (!vcopts->valid) {
-            egsWarning(geom_class_msg, "Missing or invalid 'volume correction' input item");
+            egsWarning(geom_class_msg, "Missing or invalid 'region discovery' input item");
             return 0;
         }
 

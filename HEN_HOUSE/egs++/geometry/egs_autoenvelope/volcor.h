@@ -76,7 +76,7 @@ namespace volcor {
 
 /*! Available volume correction modes */
 enum VolCorMode {
-    NO_CORRECTION,  /*!< Region discovery only. No volume correction applied */
+    DISCOVERY_ONLY,  /*!< Region discovery only. No volume correction applied */
     ZERO_VOL,       /*!< Set base geometry region volume to zero in regions with inscribed geometries */
     CORRECT_VOLUME  /*!< Subtract inscribed geometry volume from base geometry region volume */
 };
@@ -215,9 +215,9 @@ EGS_Float getShapeVolume(EGS_Input *shape_inp) {
  * VCOptions is a small helper class for parsing a volume correction input item
  * A sample input would look like this:
  * \verbatim
- :start volume correction:
+ :start region discovery:
 
-    correction type = correct # correct, none,  zero volume
+    action = discovery # discover, discover and correct volume, discover and zero volume
     density of random points (cm^-3) = 1E6 # Defaults to 1E8
 
     :start shape:
@@ -227,7 +227,7 @@ EGS_Float getShapeVolume(EGS_Input *shape_inp) {
         # volume = 123456 # use volume key for shapes other than cylinder, sphere, or box
     :stop shape:
 
- :stop volume correction:
+ :stop region discovery:
 \endverbatim
 
  *
@@ -294,7 +294,7 @@ public:
     EGS_Float density; /*!< Density of points (cm^-3) used for MC volume calculation */
     EGS_Float npoints; /*!< total number of points used for VC (density*bounds_volume) */
 
-    VolCorMode mode;  /* mode requested by user (defaults to NO_CORRECTION) */
+    VolCorMode mode;  /* mode requested by user (defaults to DISCOVERY_ONLY) */
 
     EGS_RandomGenerator *rng;
     string vc_file;
@@ -307,15 +307,15 @@ protected:
     bool sobolAllowed;
 
 
-    /*! get requested mode from input. Default to NO_CORRECTION */
+    /*! get requested mode from input. Default to DISCOVERY_ONLY */
     void setMode() {
 
         vector<string> choices;
-        choices.push_back("none");
-        choices.push_back("zero volume");
-        choices.push_back("correct");
+        choices.push_back("discover");
+        choices.push_back("discover and zero volume");
+        choices.push_back("discover and correct volume");
 
-        mode = (VolCorMode)input->getInput("correction type",choices, (int)NO_CORRECTION);
+        mode = (VolCorMode)input->getInput("action", choices, (int)DISCOVERY_ONLY);
     }
 
     /*! get external volume correction file */
@@ -601,7 +601,7 @@ VCResults findRegionsWithInscribed(VCOptions *opts, EGS_BaseGeometry *base,
 
     results.inscribed_volume = opts->bounds_volume*(double)n_in_inscribed/(int)opts->npoints;
 
-    if (opts->mode != NO_CORRECTION) {
+    if (opts->mode != DISCOVERY_ONLY) {
         results.corrected_volumes = applyVolumeCorrections(opts, hit_counter, results.uncorrected_volumes);
     }
     else {
@@ -689,7 +689,7 @@ VCResults loadFileResults(VCOptions *opts, EGS_BaseGeometry *base,
             "volumes from file '%s'\n", opts->vc_file.c_str()
         );
     }
-    if (opts->mode != NO_CORRECTION) {
+    if (opts->mode != DISCOVERY_ONLY) {
         results.corrected_volumes = applyFileVolumeCorrections(opts, reg_volumes, results.uncorrected_volumes);
     }
     else {

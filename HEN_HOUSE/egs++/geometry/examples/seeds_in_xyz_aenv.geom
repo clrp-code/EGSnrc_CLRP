@@ -73,6 +73,8 @@
         type = EGS_AEnvelope
         base geometry = xyz
 
+        print debug info = yes  # optional: no(default), yes
+
         :start inscribed geometry:
 
             inscribed geometry name = seed
@@ -133,9 +135,9 @@
 
             :stop transformations:
 
-            :start volume correction:
+            :start region discovery:
 
-                correction type = correct
+                action = discover and correct volume # other options are 'discover', 'discover and zero volume'
                 density of random points (cm^-3) = 1E8
 
                 :start shape:
@@ -146,7 +148,7 @@
 
                 :stop shape:
 
-            :stop volume correction:
+            :stop region discovery:
 
         :stop inscribed geometry:
     :stop geometry:
