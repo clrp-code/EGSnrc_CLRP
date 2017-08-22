@@ -57,6 +57,9 @@
 #include "../egs_autoenvelope/gzstream.h"
 #endif
 
+
+bool collapseSpaces(char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); }
+
 /*! \brief Split a string on input delimeter */
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
     std::stringstream ss(s);
@@ -69,8 +72,10 @@ std::vector<std::string> &split(const std::string &s, char delim, std::vector<st
 
 
 /*! \brief Split a string on input delimeter */
-std::vector<std::string> split(const std::string &s, char delim) {
+std::vector<std::string> split(std::string &s, char delim) {
     std::vector<std::string> elems;
+    std::string::iterator new_end = std::unique(s.begin(), s.end(), collapseSpaces);
+    s.erase(new_end, s.end());
     split(s, delim, elems);
     return elems;
 }
@@ -120,10 +125,30 @@ vector<string> getSearchPaths(string density_path){
 }
 
 
+EGS_Float getDensityFromCorFile(string fname){
+
+    vector<string> paths = getSearchPaths(fname);
+
+    for (size_t i = 0; i < paths.size() ; i++){
+        ifstream f(paths[i].c_str());
+
+        if (f) {
+            string line;
+            getline(f, line);  // med name line
+            getline(f, line);  // density line
+            return atof(trim(split(trim(line), ' ')[2]).c_str());
+        }
+
+    }
+
+    return -1;
+}
+
+
 /*! \brief parse density file */
 map<string, EGS_Float> getMedRhos(ifstream &in) {
     const string med_delim = "medium=";
-    const string rho_delim = "rho= ";
+    const string rho_delim = "rho=";
     const string density_delim = "densitycorrectionfile=";
     string cur_med_name;
     EGS_Float cur_density;
@@ -138,10 +163,33 @@ map<string, EGS_Float> getMedRhos(ifstream &in) {
         bool new_med = nospaces(lline).find(med_delim) != string::npos;
 
         if (new_med) {
+
             cur_med_name = trim(split(trim(split(line, '=')[1]), ',')[0]);
-            getline(in, line);
-            cur_density = atof(trim(split(trim(split(line, '=')[1]), ',')[0]).c_str());
-            med_rhos[cur_med_name] = cur_density;
+
+            bool rho_found = false;
+
+            while (in) {
+                getline(in, line);
+                lline = line;
+                transform(line.begin(), line.end(), lline.begin(), ::tolower);
+                bool rho_found = nospaces(lline).find(rho_delim) != string::npos;
+                bool next_med_found = nospaces(lline).find(med_delim) != string::npos;
+                bool den_file_found = nospaces(lline).find(density_delim) != string::npos;
+                if (next_med_found){
+                    egsFatal("Unable to determine density for %s ", cur_med_name.c_str());
+                }else if (rho_found){
+                    cur_density = atof(trim(split(trim(split(line, '=')[1]), ',')[0]).c_str());
+                    med_rhos[cur_med_name] = cur_density;
+                    break;
+                }else if(den_file_found){
+                    string density_f = trim(split(trim(split(line, '=')[1]), ',')[0]);
+                    cur_density = getDensityFromCorFile(density_f + ".density");
+                    if (cur_density >= 0){
+                        med_rhos[cur_med_name] = cur_density;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -302,7 +350,6 @@ extern "C" {
                 egsWarning("\n\nEGS_Glib::EgsPhant input Missing 'density file' key. Default media densities will be used. \n\n");
             }
             else {
-
 
                 ifstream rho_data(density_file.c_str());
 
