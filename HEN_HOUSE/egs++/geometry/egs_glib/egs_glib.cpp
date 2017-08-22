@@ -38,10 +38,13 @@
  *  \author Randle Taylor (randle.taylor@gmail.com)
  **/
 
+#include <algorithm>
 #include <map>
 #include <iostream>
 #include <istream>
+#include <locale>
 #include <sstream>
+#include <string>
 #include <fstream>
 #include "egs_input.h"
 #include "egs_functions.h"
@@ -90,10 +93,38 @@ static inline std::string &trim(std::string &s) {
 }
 
 
+static inline std::string &nospaces(string &s){
+    s.erase( std::remove_if( s.begin(), s.end(), ::isspace ), s.end() );
+    return s;
+}
+
+
+vector<string> getSearchPaths(string density_path){
+    /* see https://github.com/nrc-cnrc/EGSnrc/commit/1de38babafcf804150b448c32ab8cad0e5b54c63
+     * for density path search order */
+
+    vector<string> paths;
+    paths.push_back(density_path);
+
+    string eh = getenv("EGS_HOME");
+    string hh = getenv("HEN_HOUSE");
+
+    paths.push_back(eh + "pegs4/density_corrections/" + density_path);
+    paths.push_back(eh + "pegs4/density_corrections/elements/" + density_path);
+    paths.push_back(eh + "pegs4/density_corrections/compounds/" + density_path);
+    paths.push_back(eh + "pegs4/density/" + density_path);
+    paths.push_back(hh + "pegs4/density_corrections/elements/" + density_path);
+    paths.push_back(hh + "pegs4/density_corrections/compounds/" + density_path);
+
+    return paths;
+}
+
+
 /*! \brief parse density file */
 map<string, EGS_Float> getMedRhos(ifstream &in) {
-    const string med_delim = "MEDIUM=";
-    const string rho_delim = "RHO= ";
+    const string med_delim = "medium=";
+    const string rho_delim = "rho= ";
+    const string density_delim = "densitycorrectionfile=";
     string cur_med_name;
     EGS_Float cur_density;
     map<string, EGS_Float> med_rhos;
@@ -101,8 +132,10 @@ map<string, EGS_Float> getMedRhos(ifstream &in) {
     while (in) {
         string line;
         getline(in, line);
+        string lline(line);
+        transform(line.begin(), line.end(), lline.begin(), ::tolower);
 
-        bool new_med = line.find(med_delim) != string::npos;
+        bool new_med = nospaces(lline).find(med_delim) != string::npos;
 
         if (new_med) {
             cur_med_name = trim(split(trim(split(line, '=')[1]), ',')[0]);
