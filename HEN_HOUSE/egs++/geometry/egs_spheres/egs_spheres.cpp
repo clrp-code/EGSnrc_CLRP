@@ -645,7 +645,7 @@ EGS_Float EGS_cSphericalShell::hownear(int ireg, const EGS_Vector &x) {
 }
 
 EGS_Float EGS_cSphericalShell::getBound(int idir, int ind) {
-    if (idir == RDIR && ind > 0 && ind <= nreg) {
+    if (idir == RDIR && ind >= 0 && ind <= nreg) {
         return R[ind];
     }
     return EGS_BaseGeometry::getBound(idir, ind);
