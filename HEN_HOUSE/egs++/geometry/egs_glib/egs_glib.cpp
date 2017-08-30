@@ -265,7 +265,7 @@ EGS_BaseGeometry *readEGSPhant(istream &data, map<string, EGS_Float> med_rhos) {
             }
         }
         else {
-            egsFatal("While construction geometry from egsphant file, the medium %s was not found in the density file\n", reg_med.c_str());
+            egsFatal("While constructing geometry from egsphant file, the medium %s was not found in the density file\n", reg_med.c_str());
         }
     }
 
