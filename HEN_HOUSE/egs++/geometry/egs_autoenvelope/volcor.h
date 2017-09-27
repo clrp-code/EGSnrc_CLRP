@@ -208,7 +208,7 @@ EGS_Float getShapeVolume(EGS_Input *shape_inp) {
 
     return -1;
 
-};
+}
 
 /*! \brief Volume correction initialization helper class
  *
@@ -239,7 +239,7 @@ class VCOptions {
 
 public:
 
-    const static double DEFAULT_RAND_POINT_DENSITY = 1E8;
+    const static unsigned long DEFAULT_RAND_POINT_DENSITY = 100000000;
 
     /*! VCOptions constructor. Initializes volume correction options from given input */
     VCOptions(EGS_Input *inp):
@@ -362,7 +362,7 @@ protected:
         int err = input->getInput("density of random points (cm^-3)", density);
         if (err) {
             egsWarning("The volume correction 'density of random points (cm^-3)' input was not found\n");
-            density =  DEFAULT_RAND_POINT_DENSITY;
+            density =  (EGS_Float)DEFAULT_RAND_POINT_DENSITY;
         }
 
         npoints = max(1., density*bounds_volume);
