@@ -63,7 +63,7 @@ void r8mat_write(string output_filename, int m, int n, double table[]);
 
 int tau_sobol(int dim_num);
 
-};
+}
 
 
 

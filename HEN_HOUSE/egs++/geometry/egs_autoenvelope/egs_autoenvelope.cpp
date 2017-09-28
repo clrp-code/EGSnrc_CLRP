@@ -235,12 +235,12 @@ bool EGS_AEnvelope::isRealRegion(int ireg) {
     local = getLocalFromGlobalReg(ireg);
     return local.first->isRealRegion(local.second);
 
-};
+}
 
 
 bool EGS_AEnvelope::isInside(const EGS_Vector &x) {
     return base_geom->isInside(x);
-};
+}
 
 
 int EGS_AEnvelope::isWhere(const EGS_Vector &x) {
@@ -265,11 +265,11 @@ int EGS_AEnvelope::isWhere(const EGS_Vector &x) {
 
     // not in any of the inscribed geometries so must be in envelope region
     return base_reg;
-};
+}
 
 int EGS_AEnvelope::inside(const EGS_Vector &x) {
     return isWhere(x);
-};
+}
 
 int EGS_AEnvelope::medium(int ireg) const {
 
@@ -280,7 +280,7 @@ int EGS_AEnvelope::medium(int ireg) const {
     volcor::GeomRegPairT local = getLocalFromGlobalReg(ireg);
 
     return local.first->medium(local.second);
-};
+}
 
 vector<EGS_BaseGeometry *> EGS_AEnvelope::getGeomsInRegion(int ireg) {
     if (ireg < 0 || ireg >= nregbase) {
@@ -288,7 +288,7 @@ vector<EGS_BaseGeometry *> EGS_AEnvelope::getGeomsInRegion(int ireg) {
         return empty;
     }
     return geoms_in_region[ireg];
-};
+}
 
 int EGS_AEnvelope::computeIntersections(int ireg, int n, const EGS_Vector &X,
                                         const EGS_Vector &u, EGS_GeometryIntersections *isections) {
@@ -462,7 +462,7 @@ EGS_Float EGS_AEnvelope::howfarToOutside(int ireg, const EGS_Vector &x, const EG
         d = base_geom->howfarToOutside(ir,x,u);
     }
     return d;
-};
+}
 
 
 int EGS_AEnvelope::howfar(int ireg, const EGS_Vector &x, const EGS_Vector &u,
@@ -546,7 +546,7 @@ int EGS_AEnvelope::howfar(int ireg, const EGS_Vector &x, const EGS_Vector &u,
     }
 
     return new_base_reg;
-};
+}
 
 
 EGS_Float EGS_AEnvelope::hownear(int ireg, const EGS_Vector &x) {
@@ -577,7 +577,7 @@ EGS_Float EGS_AEnvelope::hownear(int ireg, const EGS_Vector &x) {
         }
     }
     return tmin;
-};
+}
 
 bool EGS_AEnvelope::hasBooleanProperty(int ireg, EGS_BPType prop)  {
     if (ireg >= 0 && ireg < nreg) {
@@ -588,23 +588,23 @@ bool EGS_AEnvelope::hasBooleanProperty(int ireg, EGS_BPType prop)  {
         return local.first->hasBooleanProperty(local.second, prop);
     }
     return false;
-};
+}
 
 void EGS_AEnvelope::setBooleanProperty(EGS_BPType prop) {
     setPropertyError("setBooleanProperty()");
-};
+}
 
 void EGS_AEnvelope::addBooleanProperty(int bit) {
     setPropertyError("addBooleanProperty()");
-};
+}
 
 void EGS_AEnvelope::setBooleanProperty(EGS_BPType prop, int start, int end,int step) {
     setPropertyError("setBooleanProperty()");
-};
+}
 
 void EGS_AEnvelope::addBooleanProperty(int bit,int start,int end,int step) {
     setPropertyError("addBooleanProperty()");
-};
+}
 
 int EGS_AEnvelope::getMaxStep() const {
     int nstep = base_geom->getMaxStep();
@@ -612,7 +612,7 @@ int EGS_AEnvelope::getMaxStep() const {
         nstep += inscribed_geoms[j]->getMaxStep();
     }
     return nstep + inscribed_geoms.size();
-};
+}
 
 EGS_Float EGS_AEnvelope::getMass(int ireg) {
 
@@ -626,7 +626,7 @@ EGS_Float EGS_AEnvelope::getMass(int ireg) {
     volcor::GeomRegPairT local = global_reg_to_local[ireg];
 
     return local.first->getMass(local.second);
-};
+}
 
 EGS_Float EGS_AEnvelope::getMassCorrectionRatio(int ireg) {
 
@@ -635,7 +635,7 @@ EGS_Float EGS_AEnvelope::getMassCorrectionRatio(int ireg) {
     }
 
     return 1;
-};
+}
 
 
 /* Print information about the geometry. If `print debug info = yes` is present
@@ -793,7 +793,7 @@ EGS_Float EGS_AEnvelope::getRelativeRho(int ireg) const {
         return local.first->getRelativeRho(local.second);
     }
     return 1;
-};
+}
 
 
 /*************************************************************************/
@@ -808,7 +808,7 @@ EGS_ASwitchedEnvelope::EGS_ASwitchedEnvelope(EGS_BaseGeometry *base_geom,
     cur_ptr = 0;
     active_inscribed.push_back(inscribed_geoms[cur_ptr]);
 
-};
+}
 
 
 //TODO: this gets called a lot and is probably quite slow.  Instead fo doing a

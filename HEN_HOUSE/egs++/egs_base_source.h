@@ -899,7 +899,7 @@ EGS_BaseSource *createSourceTemplate(EGS_Input *input,
         return 0;
     }
     return res;
-};
+}
 
 #endif
 
