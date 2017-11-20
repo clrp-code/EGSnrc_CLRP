@@ -250,7 +250,7 @@ extern "C" {
             return 0;
         }
 
-        EGS_CylindersZ *cyl = new EGS_CylindersZ(radii, EGS_Vector(), EGS_BaseGeometry::getUniqueName(), ZProjector());
+        EGS_CylindersZ *cyl = new EGS_CylindersZ(radii, EGS_Vector(), EGS_BaseGeometry::getUniqueName(), EGS_ZProjector(""));
         EGS_PlanesZ *planes = new EGS_PlanesZ(zplanes, EGS_BaseGeometry::getUniqueName(), EGS_ZProjector("z-planes"));
 
         vector<EGS_BaseGeometry *> rz_geoms;
