@@ -548,7 +548,7 @@ public:
 	cgeoms(0), nsubgeoms(0), check_for_subreg(0), is_subgeomreg(0), subgeoms(0),
 	container(0), container2(0), container3(0), save_dose(0), silent(0) ,
         iso_pu_flag(0), cav_pu_flag(0), iso_pu_do_shift(0), cav_pu_do_shift(0),pu_flag(0),
-        McasePerPos(0), NposPerSample(0), onegeom(0) {  };
+        McasePerPos(0), NposPerSample(0), onegeom(0), csplit(1) {  };
 
     /*! Destructor.  */
     ~EGS_ChamberApplication() {
@@ -740,7 +740,7 @@ private:
 
 const static char __egs_app_msg_my3[] = "EGS_ChamberApplication::runSimulation():";
 
-string EGS_ChamberApplication::revision = "$Revision: 1.21 $";
+string EGS_ChamberApplication::revision = " ";
 
 extern __extc__  void
 F77_OBJ_(select_photon_mfp,SELECT_PHOTON_MFP)(EGS_Float *dpmfp) {
@@ -940,7 +940,6 @@ int EGS_ChamberApplication::initScoring() {
         //
         // ******** radiative event splitting
         //
-        csplit=1;
         if( !vr->getInput("radiative splitting", csplit) && csplit > 1) {
             egsInformation("\n => initScoring: splitting radiative events %d times ...\n", csplit);
            the_egsvr->nbr_split = csplit;

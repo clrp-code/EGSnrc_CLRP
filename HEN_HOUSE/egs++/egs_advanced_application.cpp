@@ -69,7 +69,7 @@ using namespace std;
     EGS_Application *a = EGS_Application::activeApplication();
 #endif
 
-string EGS_AdvancedApplication::base_revision = "$Revision: 1.39 $";
+string EGS_AdvancedApplication::base_revision = " ";
 
 /*
 extern __extc__ struct EGS_Stack F77_OBJ(stack,STACK);
@@ -893,6 +893,7 @@ int EGS_AdvancedApplication::finishSimulation() {
     // output_file name and re-open units.
     output_file = final_output_file;
     the_egsio->i_parallel = 0;
+    i_parallel=0;
     int flag = 0;
     egsOpenUnits(&flag);
     // The following is necessary because finishRun() was called from
