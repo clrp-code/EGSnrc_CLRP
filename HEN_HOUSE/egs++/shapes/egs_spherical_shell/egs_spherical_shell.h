@@ -126,7 +126,7 @@ public:
 
 protected:
 
-    EGS_Float  r_inner, r_outer, sgn;     //!< The sphere radius
+    EGS_Float  r_inner, r_outer, r_inner3, r_outer3, sgn;     //!< The sphere radius
     int hemisphere;
     EGS_Float  half_angle;     //!< Half angle of conical section
     EGS_Vector xo;    //!< The sphere midpoint
