@@ -44,7 +44,7 @@
 
 EGS_SphericalShellShape::EGS_SphericalShellShape(EGS_Float ri, EGS_Float ro, int hemisph, EGS_Float halfangle, const EGS_Vector &Xo,
         const string &Name,EGS_ObjectFactory *f) :
-    EGS_BaseShape(Name, f), r_inner(ri), r_outer(ro), hemisphere(hemisph), half_angle(halfangle), xo(Xo) {
+    EGS_BaseShape(Name, f), r_inner(ri), r_outer(ro), r_inner3(pow(ri,3)), r_outer3(pow(ro,3)), hemisphere(hemisph), half_angle(halfangle), xo(Xo) {
     otype = "sphericalShell";
     if (half_angle < 0) {
         sgn = -1;
@@ -62,7 +62,7 @@ EGS_Vector EGS_SphericalShellShape::getPoint(EGS_RandomGenerator *rndm) {
     EGS_Float rnd1 = rndm->getUniform();
     EGS_Float rnd2 = rndm->getUniform();
 
-    EGS_Float rad = r_inner + (r_outer - r_inner)*pow(rnd1, 1/3.);
+    EGS_Float rad = pow(r_inner3+((r_outer3-r_inner3)*rnd1),1.0/3.0);
 
     EGS_Float cos_max, cos_min;
     EGS_Float cos_th;
