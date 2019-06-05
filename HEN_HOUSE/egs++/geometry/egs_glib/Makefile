@@ -36,7 +36,7 @@ $(DSO2)$(library).$(obje): ndgeom $(GZSTREAM_H)
 $(ABS_DSO)$(libpre)$(library)$(libext): ndgeom $(GZSTREAM_H)
 
 ndgeom:
-	cd ..$(DSEP)egs_nd_geometry && make
+	cd ..$(DSEP)egs_nd_geometry && $(make_prog)
 
 clean:
 	rm -f $(ABS_DSO)$(libpre)$(library)$(libext)
