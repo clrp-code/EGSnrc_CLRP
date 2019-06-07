@@ -54,3 +54,6 @@ html
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+### ignore IDE generated files
+.vscode
