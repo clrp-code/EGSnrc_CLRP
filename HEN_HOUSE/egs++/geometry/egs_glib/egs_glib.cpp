@@ -204,7 +204,7 @@ EGS_BaseGeometry *readEGSPhant(istream &data, map<string, EGS_Float> med_rhos) {
     // read in media names and create map from phant medium code character to egs++ name
     map<char, string> phant2egs;
     map<char, int> phant2egs_idx;
-    string phant_meds_str = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    string phant_meds_str = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     for (int i=0; i < nmed; i++) {
         string med;
         data >> med;
