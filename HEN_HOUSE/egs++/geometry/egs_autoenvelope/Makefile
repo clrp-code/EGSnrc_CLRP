@@ -1,8 +1,34 @@
-#*****************************************************************************
+###############################################################################
 #
-#  $Id: Makefile,v 1.1 2005/04/29 20:50:19 iwan Exp $
+#  EGSnrc egs++ makefile to build auto envelope geometry
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
-#*****************************************************************************
+#  This file is part of EGSnrc.
+#
+#  EGSnrc is free software: you can redistribute it and/or modify it under
+#  the terms of the GNU Affero General Public License as published by the
+#  Free Software Foundation, either version 3 of the License, or (at your
+#  option) any later version.
+#
+#  EGSnrc is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+#  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+#  more details.
+#
+#  You should have received a copy of the GNU Affero General Public License
+#  along with EGSnrc. If not, see <http://www.gnu.org/licenses/>.
+#
+###############################################################################
+#
+#  Author:          Randle Taylor, 2016
+#
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
+#
+###############################################################################
+
 
 include $(EGS_CONFIG)
 include $(SPEC_DIR)egspp.spec
@@ -49,9 +75,9 @@ $(ABS_DSO)$(libpre)egs_autoenvelope$(libext): volcor.h $(GZSTREAM_H) \
 						..$(DSEP)egs_gtransformed$(DSEP)egs_gtransformed.h
 
 clean:
-	rm -f $(ABS_DSO)$(libpre)egs_autoenvelope$(libext) $(ABS_DSO)$(libpre)egs_sobol$(libext) $(ABS_DSO)$(libpre)sobol$(libext) \
+	$(REMOVE) $(ABS_DSO)$(libpre)egs_autoenvelope$(libext) $(ABS_DSO)$(libpre)egs_sobol$(libext) $(ABS_DSO)$(libpre)sobol$(libext) \
 		$(ABS_DSO)$(libpre)gzstream$(libext) $(ABS_DSO)$(libpre)gzstream$(libext)
-	rm -f $(DSO2)autoenvelope.$(obje) $(DSO2)sobol.$(obje) $(DSO2)egs_sobol.$(obje) \
+	$(REMOVE) $(DSO2)autoenvelope.$(obje) $(DSO2)sobol.$(obje) $(DSO2)egs_sobol.$(obje) \
 		$(DSO2)gzstream.$(obje) $(DSO2)gzstream.$(obje) \
 
 touchup:

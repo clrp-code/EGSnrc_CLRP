@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ auto envelope geometry headers
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,12 +24,14 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
-# egs_autoenvelope was developed for Carleton Laboratory for Radiotherapy
-# Physics (Rowan Thomson, Dave Rogers).
+#  egs_autoenvelope was developed for the Carleton Laboratory for
+#  Radiotherapy Physics.
 #
 ###############################################################################
 */
@@ -364,7 +367,7 @@ public:
 
     int getNRegWithInscribed() const;
 
-    bool isRealRegion(int ireg);
+    bool isRealRegion(int ireg) const;
 
     bool isInside(const EGS_Vector &x);
 
@@ -387,7 +390,7 @@ public:
 
     EGS_Float hownear(int ireg, const EGS_Vector &x);
 
-    bool hasBooleanProperty(int ireg, EGS_BPType prop);
+    bool hasBooleanProperty(int ireg, EGS_BPType prop) const;
 
     void setBooleanProperty(EGS_BPType);
 
@@ -399,9 +402,9 @@ public:
 
     int getMaxStep() const;
 
-    virtual EGS_Float getMass(int ireg);
+    virtual EGS_Float getVolume(int ireg);
 
-    virtual EGS_Float getMassCorrectionRatio(int ireg);
+    virtual EGS_Float getCorrectionRatio(int ireg);
 
     virtual const string &getType() const {
         return type;
@@ -458,10 +461,6 @@ protected:
 
     //keep track of which geometries are present in which base geometry regions
     vector<EGS_BaseGeometry *> *geoms_in_region;
-
-    // base geometry mass correction by region
-    vector<EGS_Float> uncorrected_mass;
-    vector<EGS_Float> corrected_mass;
 
     static string type;    //!< Geometry type
 

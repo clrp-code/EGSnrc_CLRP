@@ -187,12 +187,12 @@ public:
     /*! \brief \overload */
     EGS_CylindersT(const vector<EGS_Float> &radius,
                    const EGS_Vector &position, const string &Name,
-                   const T &A) : EGS_BaseGeometry(Name), a(A), xo(position) {
+                   const T &A) : EGS_BaseGeometry(Name), xo(position), a(A) {
         if (radius.size()>0) {
             R=new EGS_Float [radius.size()];
             R2=new EGS_Float [radius.size()];
 
-            for (int i=0; i<radius.size(); i++) {
+            for (std::size_t i=0; i<radius.size(); i++) {
                 R[i]=radius[i];
                 R2[i]=radius[i]*radius[i];
             }

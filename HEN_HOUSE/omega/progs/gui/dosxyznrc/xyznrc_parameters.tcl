@@ -478,23 +478,6 @@ wrong charge and/or LATCH value.
 Note that the total number of histories is still limited by NCASE even if\
 you are recycling.
 }
-set names(17) "Run job in parallel"
-set numopts(17) 2
-set options(17,0) "no"
-set options(17,1) "yes"
-set help_text(17) {
-Run job in parallel, IPARALLEL:
-
-Set this parameter to 'yes' if you are distributing the job among more than\
-	one machine.  You will be asked to enter the\
-	number of machines that you intend to use.  This will generate a binary\
-	.pardose file for each job which will contain the doses in all voxels\
-	WITHOUT UNCERTAINTIES.  IPARALLEL defaults to 0.
-
-Note that IPARALLEL is automatically set to 1 by NRC's pprocess script.  So\
-        if you are using the pprocess script (with NQS), you do not have\
-        to set this parameter before submitting parallel jobs.
-}
 
 set names(18) "Photon splitting number"
 set numopts(18) 0
@@ -698,6 +681,19 @@ as well.  This latter is a separate input and is part of those for sources 20 an
 set dflagopt(0) "uniform"
 set dflagopt(1) "non-uniform"
 set dflag $dflagopt(0)
+
+set help_text(iphspout) {
+For outputting IAEA format phase space data on exit\
+from the phantom geometry (i_phsp_out). If i_phsp_out=1, then data\
+is output in DOSXYZnrc coordinates. If i_phsp_out=2\
+data is output in BEAMnrc coordinates. This option is\
+only available for phase space or BEAMnrc simulation\
+sources (which have a region surrounding the phantom).\
+The default is i_phsp_out=0: no phase space\
+output. If you are using source 20 or source 21\
+(synchronized sources) then you also have the option of\
+storing the MU index (frMU_indx) in the phase space file (see source inputs).
+}
 
 set phspoutopt(0) "none"
 set phspoutopt(1) "in DOSXYZnrc coordinates"

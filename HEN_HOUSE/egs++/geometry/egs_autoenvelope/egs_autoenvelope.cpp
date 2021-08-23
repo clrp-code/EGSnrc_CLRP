@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ auto envelope geometry
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,15 +24,18 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
-# egs_autoenvelope was developed for Carleton Laboratory for Radiotherapy
-# Physics (Rowan Thomson, Dave Rogers).
+#  egs_autoenvelope was developed for the Carleton Laboratory for
+#  Radiotherapy Physics.
 #
 ###############################################################################
 */
+
 
 /*! \file egs_autoenvelope.cpp
  *  \brief A fast envelope geometry (based on EGS_FastEnvelope) with automatic region detection
@@ -55,7 +59,7 @@
 
 string EGS_AENVELOPE_LOCAL EGS_AEnvelope::type = "EGS_AEnvelope";
 string EGS_AENVELOPE_LOCAL EGS_ASwitchedEnvelope::type = "EGS_ASwitchedEnvelope";
-/* only geometries that support getting regional volume/mass can be used as phantoms */
+/* only geometries that support getting regional volume can be used as phantoms */
 const string EGS_AENVELOPE_LOCAL EGS_AEnvelope::allowed_base_geom_types[] = {"EGS_cSpheres", "EGS_cSphericalShell", "EGS_XYZGeometry", "EGS_RZ"};
 
 static char EGS_AENVELOPE_LOCAL geom_class_msg[] = "createGeometry(AEnvelope): %s\n";
@@ -78,7 +82,7 @@ EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
 
         string msg(
             "EGS_AEnvelope:: Volume correction is not available for geometry type '%s (%s)'. "
-            "Geometry types must implement getMass.  Valid choices are:\n\t"
+            "Geometry types must implement getVolume.  Valid choices are:\n\t"
         );
 
         int end = (int)(sizeof(allowed_base_geom_types)/sizeof(string));
@@ -94,12 +98,6 @@ EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
     nregbase = base_geom->regions();
     is_convex = base_geom->isConvex();
     has_rho_scaling = getHasRhoScaling();
-
-    // initialize uncorrected/corrected masses
-    for (int ir = 0; ir < nregbase; ir++) {
-        uncorrected_mass.push_back(base_geom->getMass(ir));
-        corrected_mass.push_back(base_geom->getMass(ir));
-    }
 
     ninscribed = inscribed.size();
     if (ninscribed == 0) {
@@ -150,12 +148,6 @@ EGS_AEnvelope::EGS_AEnvelope(EGS_BaseGeometry *base_geom,
             it!=vc_results.regions_with_inscribed.end(); it++) {
         nreg_with_inscribed++;
         copy(it->second.begin(), it->second.end(), back_inserter(geoms_in_region[it->first]));
-    }
-
-    // set mass correction based on volume correction
-    for (int ir = 0; ir < nregbase; ir++) {
-        double volume_ratio = vc_results.corrected_volumes[ir]/vc_results.uncorrected_volumes[ir];
-        corrected_mass[ir] = uncorrected_mass[ir]*volume_ratio;
     }
 
     if (getNRegWithInscribed() == 0) {
@@ -219,7 +211,7 @@ int EGS_AEnvelope::getNRegWithInscribed() const {
     return nreg_with_inscribed;
 }
 
-bool EGS_AEnvelope::isRealRegion(int ireg) {
+bool EGS_AEnvelope::isRealRegion(int ireg) const {
 
     bool is_outside =  ireg < 0 || ireg >= nreg;
     if (is_outside) {
@@ -235,12 +227,13 @@ bool EGS_AEnvelope::isRealRegion(int ireg) {
     local = getLocalFromGlobalReg(ireg);
     return local.first->isRealRegion(local.second);
 
-}
+};
 
 
 bool EGS_AEnvelope::isInside(const EGS_Vector &x) {
     return base_geom->isInside(x);
-}
+
+};
 
 
 int EGS_AEnvelope::isWhere(const EGS_Vector &x) {
@@ -265,11 +258,11 @@ int EGS_AEnvelope::isWhere(const EGS_Vector &x) {
 
     // not in any of the inscribed geometries so must be in envelope region
     return base_reg;
-}
+};
 
 int EGS_AEnvelope::inside(const EGS_Vector &x) {
     return isWhere(x);
-}
+};
 
 int EGS_AEnvelope::medium(int ireg) const {
 
@@ -280,7 +273,8 @@ int EGS_AEnvelope::medium(int ireg) const {
     volcor::GeomRegPairT local = getLocalFromGlobalReg(ireg);
 
     return local.first->medium(local.second);
-}
+
+};
 
 vector<EGS_BaseGeometry *> EGS_AEnvelope::getGeomsInRegion(int ireg) {
     if (ireg < 0 || ireg >= nregbase) {
@@ -288,7 +282,7 @@ vector<EGS_BaseGeometry *> EGS_AEnvelope::getGeomsInRegion(int ireg) {
         return empty;
     }
     return geoms_in_region[ireg];
-}
+};
 
 int EGS_AEnvelope::computeIntersections(int ireg, int n, const EGS_Vector &X,
                                         const EGS_Vector &u, EGS_GeometryIntersections *isections) {
@@ -462,7 +456,7 @@ EGS_Float EGS_AEnvelope::howfarToOutside(int ireg, const EGS_Vector &x, const EG
         d = base_geom->howfarToOutside(ir,x,u);
     }
     return d;
-}
+};
 
 
 int EGS_AEnvelope::howfar(int ireg, const EGS_Vector &x, const EGS_Vector &u,
@@ -546,7 +540,7 @@ int EGS_AEnvelope::howfar(int ireg, const EGS_Vector &x, const EGS_Vector &u,
     }
 
     return new_base_reg;
-}
+};
 
 
 EGS_Float EGS_AEnvelope::hownear(int ireg, const EGS_Vector &x) {
@@ -577,9 +571,9 @@ EGS_Float EGS_AEnvelope::hownear(int ireg, const EGS_Vector &x) {
         }
     }
     return tmin;
-}
+};
 
-bool EGS_AEnvelope::hasBooleanProperty(int ireg, EGS_BPType prop)  {
+bool EGS_AEnvelope::hasBooleanProperty(int ireg, EGS_BPType prop) const {
     if (ireg >= 0 && ireg < nreg) {
         if (ireg < nregbase) {
             return base_geom->hasBooleanProperty(ireg,prop);
@@ -588,23 +582,23 @@ bool EGS_AEnvelope::hasBooleanProperty(int ireg, EGS_BPType prop)  {
         return local.first->hasBooleanProperty(local.second, prop);
     }
     return false;
-}
+};
 
 void EGS_AEnvelope::setBooleanProperty(EGS_BPType prop) {
     setPropertyError("setBooleanProperty()");
-}
+};
 
 void EGS_AEnvelope::addBooleanProperty(int bit) {
     setPropertyError("addBooleanProperty()");
-}
+};
 
 void EGS_AEnvelope::setBooleanProperty(EGS_BPType prop, int start, int end,int step) {
     setPropertyError("setBooleanProperty()");
-}
+};
 
 void EGS_AEnvelope::addBooleanProperty(int bit,int start,int end,int step) {
     setPropertyError("addBooleanProperty()");
-}
+};
 
 int EGS_AEnvelope::getMaxStep() const {
     int nstep = base_geom->getMaxStep();
@@ -612,30 +606,30 @@ int EGS_AEnvelope::getMaxStep() const {
         nstep += inscribed_geoms[j]->getMaxStep();
     }
     return nstep + inscribed_geoms.size();
-}
+};
 
-EGS_Float EGS_AEnvelope::getMass(int ireg) {
+EGS_Float EGS_AEnvelope::getVolume(int ireg) {
 
     if (ireg < 0) {
         return -1;
     }
     else if (ireg < nregbase) {
-        return corrected_mass[ireg];
+        return vc_results.corrected_volumes[ireg];
     }
 
     volcor::GeomRegPairT local = global_reg_to_local[ireg];
 
-    return local.first->getMass(local.second);
-}
+    return local.first->getVolume(local.second);
+};
 
-EGS_Float EGS_AEnvelope::getMassCorrectionRatio(int ireg) {
+EGS_Float EGS_AEnvelope::getCorrectionRatio(int ireg) {
 
     if (0 <= ireg && ireg < nregbase) {
-        return corrected_mass[ireg]/uncorrected_mass[ireg];
+        return vc_results.corrected_volumes[ireg]/vc_results.uncorrected_volumes[ireg];
     }
 
     return 1;
-}
+};
 
 
 /* Print information about the geometry. If `print debug info = yes` is present
@@ -649,15 +643,15 @@ void EGS_AEnvelope::printInfo() const {
     if (debug_info) {
 
         for (int ir=0; ir < nregbase; ir++) {
-            if (fabs(uncorrected_mass[ir] - corrected_mass[ir]) > 1E-8) {
-                egsInformation("    mass of region %d was corrected from %.5E g to %.5E g\n",
-                               ir, uncorrected_mass[ir], corrected_mass[ir]);
+            if (fabs(vc_results.uncorrected_volumes[ir] - vc_results.corrected_volumes[ir]) > 1E-8) {
+                egsInformation("    volume of region %d was corrected from %.5E g to %.5E g\n",
+                               ir, vc_results.uncorrected_volumes[ir], vc_results.corrected_volumes[ir]);
             }
         }
 
         for (int ir=0; ir < nregbase; ir++) {
             if (geoms_in_region[ir].size() > 0) {
-                egsInformation("    region %d has %d insribed geometries\n", ir, geoms_in_region[ir].size());
+                egsInformation("    region %d has %d inscribed geometries\n", ir, geoms_in_region[ir].size());
             }
         }
     }
@@ -793,7 +787,7 @@ EGS_Float EGS_AEnvelope::getRelativeRho(int ireg) const {
         return local.first->getRelativeRho(local.second);
     }
     return 1;
-}
+};
 
 
 /*************************************************************************/
@@ -808,7 +802,7 @@ EGS_ASwitchedEnvelope::EGS_ASwitchedEnvelope(EGS_BaseGeometry *base_geom,
     cur_ptr = 0;
     active_inscribed.push_back(inscribed_geoms[cur_ptr]);
 
-}
+};
 
 
 //TODO: this gets called a lot and is probably quite slow.  Instead fo doing a

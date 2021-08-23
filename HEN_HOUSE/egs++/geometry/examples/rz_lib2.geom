@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ sample nd geometry
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,14 +24,16 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
 #  An example geometry input file for the egs++ geometry package.
 #
 #  This input file defines the same geometry as rz_lib1.geom but uses slabs
-#  and shells rather than using radii and z-planes inputs
+#  and shells rather than using radii and z-planes inputs.
 #
 ###############################################################################
 
@@ -59,4 +62,3 @@
     simulation geometry = rz
 
 :stop geometry definition:
-

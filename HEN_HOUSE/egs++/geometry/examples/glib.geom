@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ sample glib geometry
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,7 +24,9 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
@@ -69,4 +72,3 @@
     simulation geometry = phantom_w_seed
 
 :stop geometry definition:
-

@@ -1,8 +1,9 @@
 /*
 ###############################################################################
 #
-#  EGSnrc egs++ conical shell headers
-#  Copyright (C) 2015 National Research Council Canada
+#  EGSnrc egs++ conical shell shape headers
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,18 +24,21 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
-# egs_conical_shell was developed for Carleton Laboratory for Radiotherapy
-# Physics (Rowan Thomson, Dave Rogers).
+#  egs_conical_shell was developed for the Carleton Laboratory for
+#  Radiotherapy Physics.
 #
 ###############################################################################
 */
 
+
 /*! \file egs_conical_shell.h
-    \brief a conical shell stack shape
+    \brief a conical stack shell shape
     \author Randle Taylor (randle.taylor@gmail.com)
 */
 

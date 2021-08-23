@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ sample autoenvelope geometry
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,18 +24,19 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
 #  An example geometry input file for the egs++ geometry package.
 #
 #  This input file defines an egs++ geometry for a series of brachytherapy
-#  seeds put into a xyz-geometry filled with water. It is very similar to the
-#  seeds_in_xyz.geom file but now the seeds are inscribed in a xyz geometry
-#  using an Auto Envelope geometry instead of a traditional envelope.
-#  It also makes use of the glib library to load a brachytherapy seed from
-#  an external file.
+#  seeds put into an xyz geometry filled with water. It is very similar to the
+#  seeds_in_xyz.geom example, but the seeds are inscribed using an automatic
+#  envelope geometry instead of a traditional envelope. It also relies on the
+#  glib library to load a brachytherapy seed from an external file.
 #
 ###############################################################################
 
@@ -73,7 +75,7 @@
         type = EGS_AEnvelope
         base geometry = xyz
 
-        print debug info = yes  # optional: no(default), yes
+        print debug info = yes  # optional: no (default), yes
 
         :start inscribed geometry:
 
@@ -156,4 +158,3 @@
     simulation geometry = seeds_in_box
 
 :stop geometry definition:
-

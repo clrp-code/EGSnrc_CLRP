@@ -71,9 +71,8 @@
 The EGS_cSpheres class implements the geometry methods for a set of
 \f$N\f$ concentric spheres which define a geometry with \f$N\f$ regions.
 As in the case of a \link EGS_CylindersT set of cylinders \endlink,
-the region index within the
-innermost sphere is 0 with the region index increasing towards the last sphere
-in the set.
+the region index within the innermost sphere is 0 with the region index
+increasing towards the last sphere in the set.
 
 The additional keys needed to construct a set of spheres is
 \verbatim
@@ -90,13 +89,14 @@ and \c I6702.inp example geometry files.
 
 
 A simple example:
+
 \verbatim
 :start geometry definition:
     :start geometry:
-        name        = my_spheres
-        library     = egs_spheres
+        name     = my_spheres
+        library  = egs_spheres
         midpoint = 0 0 0
-        radii = 1 2 3
+        radii    = 1 2 3
         :start media input:
             media = water air water
             set medium = 1 1
@@ -112,16 +112,15 @@ A simple example:
 
 There is also a second geometry type called EGS_cSphericalShell that allows you
 to construct a geometry of concentric spheres where the innermost region is
-considered xternal to the geometry (i.e. it is a hollow spherical shell). Input
-for this geometry looks like:
+considered external to the geometry (i.e., it is a hollow spherical shell).
+Input for this geometry looks like:
 
 \verbatim
-
 :start geometry:
-    name = phantom
+    name    = phantom
     library = egs_spheres
-    radii =  1, 2, 3
-    type = shell
+    radii   =  1, 2, 3
+    type    = shell
     :start media input:
         media = M0 M1
         set medium = 0 0
@@ -132,7 +131,7 @@ for this geometry looks like:
  \endverbatim
 
 The above geometry would have two regions, region 0 being `1 <= R <= 2` (medium
-M1), and region 1 being 2 <= R <= 3 (medium M1).  Particles with `R < 1` and
+M0), and region 1 being 2 <= R <= 3 (medium M1). Particles with `R < 1` and
 `R > 3` would be considered outside the geometry.
 
 */
@@ -185,18 +184,18 @@ public:
     /*! \brief Implement geNRegDir for spherical regions */
     int getNRegDir(int dir);
 
-    /*! \brief Implement getMass for spherical regions */
-    EGS_Float getMass(int ireg);
+    /*! \brief Implement getVolume for spherical regions */
+    EGS_Float getVolume(int ireg);
 
 private:
 
     EGS_Float *R2;                // radius^2
     EGS_Float *R;                 // radius
-    EGS_Vector xo;                // for conc-spheres, all centres coincide
+    EGS_Vector xo;                // for concentric spheres, all centres coincide
     static string type;
 
     std::vector<EGS_Float> rbounds;
-    std::vector<EGS_Float> mass;
+    std::vector<EGS_Float> vol;
 };
 
 
@@ -250,16 +249,16 @@ public:
 
     int getNRegDir(int dir);
 
-    EGS_Float getMass(int ireg);
+    EGS_Float getVolume(int ireg);
 
 private:
 
     EGS_Float *R2;                // radius^2
     EGS_Float *R;                 // radius
-    EGS_Vector xo;                // for conc-spheres, all centres coincide
+    EGS_Vector xo;                // for concentric spheres, all centres coincide
     static string type;
 
-    std::vector<EGS_Float> mass;
+    std::vector<EGS_Float> vol;
 };
 
 

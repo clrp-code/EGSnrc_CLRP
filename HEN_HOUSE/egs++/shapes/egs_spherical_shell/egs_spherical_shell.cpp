@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ spherical shell shape
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,20 +24,23 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
-# egs_spherical_shell was developed for Carleton Laboratory for Radiotherapy
-# Physics (Rowan Thomson, Dave Rogers).
+#  egs_spherical_shell was developed for the Carleton Laboratory for
+#  Radiotherapy Physics.
 #
 ###############################################################################
 */
+
+
 /*! \file egs_spherical_shell.cpp
     \brief a spherical shell shape
     \author Randle Taylor (randle.taylor@gmail.com)
 */
-
 
 #include "egs_spherical_shell.h"
 #include "egs_input.h"

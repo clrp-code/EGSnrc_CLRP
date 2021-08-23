@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ glib geometry
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,12 +24,13 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
-# egs_glib was developed for Carleton Laboratory for Radiotherapy
-# Physics (Rowan Thomson, Dave Rogers).
+#  egs_glib was developed for the Carleton Laboratory for Radiotherapy Physics.
 #
 ###############################################################################
 */
@@ -305,7 +307,6 @@ EGS_BaseGeometry *parse_egsphant(string fpath, map<string, EGS_Float> med_rhos) 
 
     return result;
 }
-
 
 
 extern "C" {

@@ -27,6 +27,7 @@
 #                   Ernesto Mainegra-Hing
 #                   Frederic Tessier
 #                   Reid Townson
+#                   Randle Taylor
 #
 ###############################################################################
 */
@@ -244,12 +245,6 @@ geometries and make the simulation run somewhat slower.
 
 N-dimensional geometries are used in many of the example geometry files.
 
-Optional Features
------------------
-
-In order to use the gzip functionality you must have the egspp-geometry-lib-extras
-installed.  Due to NRC licensing requirements this code is distributed separately and
-can be obtained from https://github.com/clrp-code/egspp-geometry-lib-extras/ .
 
 A simple example:
 \verbatim
@@ -700,7 +695,10 @@ The other new possibility to define a XYZ geometry is
     z-slabs = Zo  Dz  Nz
 :stop geometry:
 \endverbatim
-which should be self explanatory.
+where, along the x axis, \c Xo is the position of the minimum boundary of the
+geometry, \c Dx is the uniform slab thickness, and \c Nx is the number of slabs
+(similarly for the y and z axes). The number of regions along x is \c Nx and
+the maximum x boundary is thus <code>Xo + Nx*Dx</code>.
 
 A simple example:
 \verbatim
@@ -944,11 +942,12 @@ public:
             if (u.x > 0) {
                 EGS_Float d = (xpos[ix+1]-x.x)/u.x;
                 if (d <= t) {
-                    if(d <= boundaryTolerance) {
+                    if (d <= boundaryTolerance) {
                         // t=0 works on most cases but can result in
                         // getting stuck on an edge, so use boundaryTolerance
-                        t = boundaryTolerance;
-                    } else {
+                        t = halfBoundaryTolerance;
+                    }
+                    else {
                         t = d;
                     }
                     if ((++ix) < nx) {
@@ -965,9 +964,10 @@ public:
             else if (u.x < 0) {
                 EGS_Float d = (xpos[ix]-x.x)/u.x;
                 if (d <= t) {
-                    if(d <= boundaryTolerance) {
-                        t = boundaryTolerance;
-                    } else {
+                    if (d <= boundaryTolerance) {
+                        t = halfBoundaryTolerance;
+                    }
+                    else {
                         t = d;
                     }
                     if ((--ix) >= 0) {
@@ -984,9 +984,10 @@ public:
             if (u.y > 0) {
                 EGS_Float d = (ypos[iy+1]-x.y)/u.y;
                 if (d <= t) {
-                    if(d <= boundaryTolerance) {
-                        t = boundaryTolerance;
-                    } else {
+                    if (d <= boundaryTolerance) {
+                        t = halfBoundaryTolerance;
+                    }
+                    else {
                         t = d;
                     }
                     if ((++iy) < ny) {
@@ -1003,9 +1004,10 @@ public:
             else if (u.y < 0) {
                 EGS_Float d = (ypos[iy]-x.y)/u.y;
                 if (d <= t) {
-                    if(d <= boundaryTolerance) {
-                        t = boundaryTolerance;
-                    } else {
+                    if (d <= boundaryTolerance) {
+                        t = halfBoundaryTolerance;
+                    }
+                    else {
                         t = d;
                     }
                     if ((--iy) >= 0) {
@@ -1022,9 +1024,10 @@ public:
             if (u.z > 0) {
                 EGS_Float d = (zpos[iz+1]-x.z)/u.z;
                 if (d <= t) {
-                    if(d <= boundaryTolerance) {
-                        t = boundaryTolerance;
-                    } else {
+                    if (d <= boundaryTolerance) {
+                        t = halfBoundaryTolerance;
+                    }
+                    else {
                         t = d;
                     }
                     if ((++iz) < nz) {
@@ -1041,9 +1044,10 @@ public:
             else if (u.z < 0) {
                 EGS_Float d = (zpos[iz]-x.z)/u.z;
                 if (d <= t) {
-                    if(d <= boundaryTolerance) {
-                        t = boundaryTolerance;
-                    } else {
+                    if (d <= boundaryTolerance) {
+                        t = halfBoundaryTolerance;
+                    }
+                    else {
                         t = d;
                     }
                     if ((--iz) >= 0) {
@@ -1114,21 +1118,12 @@ public:
     };
 
 
-    EGS_Float getMass(int ireg) {
-        if (ireg >= 0) {
-            int iz = ireg/nxy;
-            int ir = ireg - iz*nxy;
-            int iy = ir/nx;
-            int ix = ir - iy*nx;
-            EGS_Float vol = (xpos[ix+1]-xpos[ix])*(ypos[iy+1]-ypos[iy])*
-                            (zpos[iz+1]-zpos[iz]);
-            EGS_Float dens = getRelativeRho(ireg);
-            EGS_Float mass = vol*dens;
-            return mass;
-        }
-        else {
-            return 1.0;
-        }
+    EGS_Float getVolume(int ireg) {
+		int iz = ireg/nxy;
+		int ir = ireg - iz*nxy;
+		int iy = ir/nx;
+		int ix = ir - iy*nx;
+		return (xpos[ix+1]-xpos[ix])*(ypos[iy+1]-ypos[iy])*(zpos[iz+1]-zpos[iz]);
     }
 
     EGS_Float getBound(int idir, int ind) {

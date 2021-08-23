@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ sample nd_geometry egsphant geometry
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,14 +24,17 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
 #  An example geometry input file for the egs++ geometry package.
 #
 #  This input demonstrates loading an egsphant geometry using the nd_geometry
-#  library
+#  library. Requires files ndgeom_egsphant.egsphant and ndgeom_egsphant.ramp
+#  to be in the same directory.
 #
 ###############################################################################
 
@@ -47,4 +51,3 @@
     simulation geometry = my_egsphant_geom
 
 :stop geometry definition:
-

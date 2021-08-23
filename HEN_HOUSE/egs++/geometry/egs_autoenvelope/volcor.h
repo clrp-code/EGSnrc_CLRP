@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ envelope geometry headers
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, D. W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,15 +24,17 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
-# volcor was developed for Carleton Laboratory for Radiotherapy
-# Physics (Rowan Thomson, Dave Rogers).
+#  volcor was developed for the Carleton Laboratory for Radiotherapy Physics.
 #
 ###############################################################################
 */
+
 
 /*! \file volcor.h
  *
@@ -362,7 +365,7 @@ protected:
         int err = input->getInput("density of random points (cm^-3)", density);
         if (err) {
             egsWarning("The volume correction 'density of random points (cm^-3)' input was not found\n");
-            density =  (EGS_Float)DEFAULT_RAND_POINT_DENSITY;
+            density = (EGS_Float)DEFAULT_RAND_POINT_DENSITY;
         }
 
         npoints = max(1., density*bounds_volume);
@@ -539,7 +542,7 @@ vector<EGS_Float> applyFileVolumeCorrections(VCOptions *opts, vector<RegVolume> 
 vector<EGS_Float> getUncorrectedVolumes(EGS_BaseGeometry *base) {
     vector<EGS_Float> uncorrected;
     for (int ir=0; ir < base->regions(); ir++) {
-        EGS_Float vol = base->getMass(ir)/base->getRelativeRho(ir);
+        EGS_Float vol = base->getVolume(ir);
         uncorrected.push_back(vol);
     }
     return uncorrected;

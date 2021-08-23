@@ -2,7 +2,8 @@
 ###############################################################################
 #
 #  EGSnrc egs++ rz geometry headers
-#  Copyright (C) 2015 National Research Council Canada
+#  Copyright (C) 2016 Randle E. P. Taylor, Rowan M. Thomson,
+#  Marc J. P. Chamberland, Dave W. O. Rogers
 #
 #  This file is part of EGSnrc.
 #
@@ -23,12 +24,13 @@
 #
 #  Author:          Randle Taylor, 2016
 #
-#  Contributors:
+#  Contributors:    Marc Chamberland
+#                   Rowan Thomson
+#                   Dave Rogers
 #
 ###############################################################################
 #
-# egs_rz was developed for Carleton Laboratory for Radiotherapy
-# Physics (Rowan Thomson, Dave Rogers).
+#  egs_rz was developed for the Carleton Laboratory for Radiotherapy Physics.
 #
 ###############################################################################
 */
@@ -116,7 +118,7 @@ private:
 
     vector<EGS_Float> radii; /*! cylinder radii. Note radii[0] is always set to 0 */
     vector<EGS_Float> zbounds;
-    vector<EGS_Float> reg_mass; /* calculated mass of each region */
+    vector<EGS_Float> reg_vol; /* calculated vol of each region */
     static string RZType;
 
 public:
@@ -151,11 +153,9 @@ public:
     int getNRegDir(int dir);
 
     /*! \brief get mass of a given region  */
-    EGS_Float getMass(int ireg);
+    EGS_Float getVolume(int ireg);
 
 };
 
 
 #endif
-
-
