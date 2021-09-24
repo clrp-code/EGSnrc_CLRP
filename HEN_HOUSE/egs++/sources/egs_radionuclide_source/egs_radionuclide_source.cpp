@@ -23,7 +23,7 @@
 #
 #  Author:          Reid Townson, 2016
 #
-#  Contributors:	Martin Martinov
+#  Contributors:
 #
 ###############################################################################
 */
