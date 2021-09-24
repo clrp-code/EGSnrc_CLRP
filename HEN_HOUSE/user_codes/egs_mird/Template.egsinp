@@ -1,0 +1,133 @@
+#-------------------------------------------------------------------------------
+:start run control:
+	ncase       = 1e9 # The number of histories to simulate
+	nbatch      = 1 # The number of checkpoints in parallel simulations (more than 1 slows down run time)
+	nchunk      = 1 # The number of data saves during simulations (more than 1 slows down run time)
+	calculation = first # first: run the simulation from scratch, restart: run a new simulation that
+	                    # increases the statistics of already finished results, combine: run in combine
+						# mode to collect results from a parallel simulation that did not autocombine
+:stop run control:
+#-------------------------------------------------------------------------------
+:start media definition:
+	AE = 0.512 # Above Electron energy (MeV), defines the lower end cutoff for electron simulation
+	UE = 2.011 # Under Electron energy (MeV), defines the upper end cutoff for electron simulation
+	AP = 0.001 # Above Photon energy (MeV), defines the lower end cutoff for photon simulation
+	UP = 1.500 # Under Photon energy (MeV), defines the upper end cutoff for photon simulation
+
+	material data file = material.dat
+:stop media definition:
+#-------------------------------------------------------------------------------
+:start geometry definition:
+	# Importing an egsphant file
+	:start geometry:
+        library       = egs_glib # Geometry library made for egs_brachy with useful egsphant tools
+        type          = egsphant
+		name          = phantom
+        egsphant file = CHANGEME.egsphant # Use file output of DICOM_to_egsphant
+        density file  = material.dat # This is needed for visualization
+	:stop geometry:
+	 
+	# Creating your own phantom (commented out examples of two identical simple cubic water phantoms)
+	#:start geometry:
+	#	library  = egs_ndgeometry
+	#	type     = EGS_XYZGeometry
+	#	name     = phantom
+	#
+	#	x-planes = -40 -39 -38 -37 -36 -35 -34 -33 -32 -31 -30 -29 -28 -27 -26 -25 -24 -23 -22 -21 -20 -19 -18 -17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40
+	#	y-planes = -40 -39 -38 -37 -36 -35 -34 -33 -32 -31 -30 -29 -28 -27 -26 -25 -24 -23 -22 -21 -20 -19 -18 -17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40
+	#	z-planes = -40 -39 -38 -37 -36 -35 -34 -33 -32 -31 -30 -29 -28 -27 -26 -25 -24 -23 -22 -21 -20 -19 -18 -17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40
+	#	:start media input:
+	#		media = WATER
+	#	:stop media input:
+	#:stop geometry:
+	
+	#:start geometry:
+	#	library = egs_ndgeometry
+	#	type    = EGS_XYZGeometry
+	#	name    = water_phantom
+	#
+	#	x-slabs = -40 1.0 80
+	#	y-slabs = -40 1.0 80
+	#	z-slabs = -40 1.0 80
+	#	:start media input:
+	#		media = WATER
+	#	:stop media input:
+	#:stop geometry:
+
+	
+	simulation geometry = phantom # Name of the XYZ geometry you want to simulate in
+:stop geometry definition:
+#-------------------------------------------------------------------------------
+:start source definition:
+	:start source:
+		library       = egs_internal_source # Custom source built for egs_mird
+		name          = the_source_location
+		geometry      = phantom # Name of the phantom you want to use to initiate particles
+		activity file = CHANGEME.txt # Use file output of DICOM_to_egsphant
+		
+		# Importing this source into egs_radionuclide_source below will overwrite all the following spectrum
+		# data, thus a monoenergetic spectrum is chosen to avoid using the RNG
+		charge        = 0 # Input is ignored
+		:start spectrum:
+			type   = monoenergetic # Input is ignored
+			energy = 1.0 # Input is ignored
+		:stop spectrum:
+	:stop source:
+	
+	:start source:
+		name        = the_source
+		library     = egs_radionuclide_source
+		base source = the_source_location
+		:start spectrum:
+			type    = radionuclide
+			nuclide = Lu-177 # Insert any radionuclide in $HEN_HOUSE/spectra/lnhb/ensdf
+		:stop spectrum:
+	:stop source:
+	
+	simulation source = the_source
+:stop source definition:
+#-------------------------------------------------------------------------------
+:start scoring options:
+	type             = 3ddose # Output dose as either 3ddose (text file) or b3ddose (data file); 3ddose is the
+	                          # traditional and thus more compatible format, b3ddose is the faster read/write and more
+							  # accurate format that works with DICOM_from_3ddose and 3ddose_tools
+	scoring geometry = phantom # Name of the geometry to score in
+	scaling factor   = 1e15 # For egs_radionuclide_source, this changes output from Gy/history to uGy/GBq
+	#file name        = custom_output_name.3ddose # Uncomment this field to change output
+:stop scoring options:
+#-------------------------------------------------------------------------------
+:start variance reduction:	
+	score tracklength dose   = no
+	muen file                = XCOM_muen_1500keV.muendat
+
+	# WARNING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	# If you are using track length scoring, be sure
+	# "Global ECUT" is larger than the energy of any
+	# possible electron in the simulation, as TL
+	# scoring assumes KERMA = DOSE
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:stop variance reduction:
+#-------------------------------------------------------------------------------
+:start MC transport parameter:
+    Global ECUT                    = 0.512	
+    Global PCUT                    = 0.001
+    Global SMAX                    = 1e10
+    Bound Compton Scattering       = On
+    Rayleigh Scattering            = On
+    Atomic Relaxations             = On
+    Photoelectron Angular Sampling = On
+    Electron Impact Ionization     = On
+    Brems Angular Sampling         = KM
+    Brems Cross Sections           = nist
+    Pair Angular Sampling          = Off
+    ESTEPE                         = 0.25
+    XIMAX                          = 0.5
+    Skin Depth for BCA             = 3.0
+    Boundary Crossing Algorithm    = EXACT
+    Electron-Step Algorithm        = PRESTA-II
+    Spin Effects                   = On
+    Radiative Compton Corrections  = Off
+    Photon Cross Sections          = xcom
+:stop MC transport parameter:
+:stop input loop:
+#-------------------------------------------------------------------------------
