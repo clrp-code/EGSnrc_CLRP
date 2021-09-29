@@ -1,21 +1,11 @@
+help="${help}===============================================================================================================\n"
 help="${help}CLRP Command\t\tDescription\n"
-
-function __exec() {
-file="$1";
-shift;
-egs_chamber -i $file $@;}
-alias exec='__exec'
-help="${help}exec X\t\t\tRun egs_chamber input file X.\n"
-
-function __exbec() {
-file="$1";
-shift;
-/home/martinov/EGSnrc_CLRP/HEN_HOUSE/scripts/bin/egs-parallel -c "egs_chamber -i $file" $@;}
-alias exbec='__exbec'
-help="${help}exbec X -n Y\t\tRun egs_brachy input file X on Y parallel threads.\n"
-
-alias cdec='cd $EGS_HOME/egs_chamber/'
-help="${help}cdec\t\t\tChange current directory to egs_chamber directory.\n"
+help="${help}===============================================================================================================\n\n"
+##########################################################
+#                       egs_brachy                       #
+##########################################################
+help="${help}egs_brachy\n"
+help="${help}==========\n"
 
 function __exeb() {
 file="$1";
@@ -27,12 +17,67 @@ help="${help}exeb X\t\t\tRun egs_brachy input file X.\n"
 function __exbeb() {
 file="$1";
 shift;
-/home/martinov/EGSnrc_CLRP/HEN_HOUSE/scripts/bin/egs-parallel -c "egs_brachy -i $file" $@;}
+$HEN_HOUSE/scripts/bin/egs-parallel -c "egs_brachy -i $file" $@;}
 alias exbeb='__exbeb'
-help="${help}exbeb X -n Y\t\tRun egs_brachy input file X on Y parallel threads.\n"
+help="${help}exbeb X -nY\t\tRun egs_brachy input file X on Y parallel threads.\n"
 
 alias cdeb='cd $EGS_HOME/egs_brachy/'
 help="${help}cdeb\t\t\tChange current directory to egs_brachy directory.\n"
+
+help="${help}\n===============================================================================================================\n\n"
+##########################################################
+#                        egs_mird                        #
+##########################################################
+help="${help}egs_mird\n"
+help="${help}========\n"
+
+function __exem() {
+file="$1";
+shift;
+egs_mird -i $file $@;}
+alias exem='__exem'
+help="${help}exem X\t\t\tRun egs_mird input file X.\n"
+
+function __exbem() {
+file="$1";
+shift;
+$HEN_HOUSE/scripts/bin/egs-parallel -c "egs_mird -i $file" $@;}
+alias exbem='__exbem'
+help="${help}exbem X -nY\t\tRun egs_mird input file X on Y parallel threads.\n"
+
+alias cdem='cd $EGS_HOME/egs_mird/'
+help="${help}cdem\t\t\tChange current directory to egs_mird directory.\n"
+
+help="${help}\n===============================================================================================================\n\n"
+##########################################################
+#                      egs_chamber                       #
+##########################################################
+help="${help}egs_chamber\n"
+help="${help}===========\n"
+
+function __exec() {
+file="$1";
+shift;
+egs_chamber -i $file $@;}
+alias exec='__exec'
+help="${help}exec X\t\t\tRun egs_chamber input file X.\n"
+
+function __exbec() {
+file="$1";
+shift;
+$HEN_HOUSE/scripts/bin/egs-parallel -c "egs_chamber -i $file" $@;}
+alias exbec='__exbec'
+help="${help}exbec X -nY\t\tRun egs_chamber input file X on Y parallel threads.\n"
+
+alias cdec='cd $EGS_HOME/egs_chamber/'
+help="${help}cdec\t\t\tChange current directory to egs_chamber directory.\n"
+
+help="${help}\n===============================================================================================================\n\n"
+##########################################################
+#                         EGSnrc                         #
+##########################################################
+help="${help}EGSnrc\n"
+help="${help}======\n"
 
 alias cdegs='cd "$EGS_HOME"'
 help="${help}cdegs\t\t\tChange current directory to $EGS_HOME.\n"
@@ -42,6 +87,13 @@ help="${help}cdegs++\t\t\tChange current directory to egs++ directory of $HEN_HO
 
 alias qd='seq -f "%.0f" \!:1 \!:2 | xargs qdel'
 help="${help}qd X Y\t\t\tStop running all your jobs which have X<=ID<=Y\n"
+
+help="${help}\n===============================================================================================================\n\n"
+##########################################################
+#                     Batch Commands                     #
+##########################################################
+help="${help}Batch Commands\n"
+help="${help}==============\n"
 
 function __lsegs() {
 ls "$@" | grep -v "_w1\|_w2\|_w3\|_w4\|_w5\|_w6\|_w7\|_w8\|_w9\|egsrun_\|.lock\|.egsparallel\|.egsjob"; }
@@ -74,10 +126,28 @@ help="${help}incompleteToEgslog\tMove all *.incomplete.egslog files to *.egslog.
 alias predict='~/scripts/predict \!:1*'
 help="${help}predict X\t\tProvide an estimate of how many hours X.egsinp will take to run using X.egslog\n"
 
-alias 3ddt='~/3ddose_tools/3ddose_tools'
-help="${help}3ddt\t\t\tCalls 3ddose_tools\n"
+help="${help}\n===============================================================================================================\n\n"
+##########################################################
+#                          GUIs                          #
+##########################################################
+help="${help}GUIs\n"
+help="${help}====\n"
 
 alias ebGUI='/home/martinov/egs_brachy_GUI/egs_brachy_GUI'
 help="${help}ebGUI\t\t\tCalls egs_brachy_GUI\n"
 
+alias 3ddt='~/3ddose_tools/3ddose_tools'
+help="${help}3ddt\t\t\tCalls 3ddose_tools\n"
+
+function __ev() {
+file="$1";
+shift;
+$HEN_HOUSE/bin/linux/egs_view $file $@;}
+alias ev='__ev'
+help="${help}ev\t\t\tCalls egs_view on input or geom file X\n"
+
+help="${help}\n===============================================================================================================\n"
+##########################################################
+#                          help                          #
+##########################################################
 alias clrp_help='printf "$help"'
