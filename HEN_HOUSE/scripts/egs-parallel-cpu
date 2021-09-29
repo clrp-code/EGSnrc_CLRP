@@ -156,7 +156,7 @@ for job in $(seq 1 $nthread); do
 		exitLoopCount=0
 		while [ ! -f $basename".lock" ]; do
 			exitLoopCount=$((exitLoopCount + 1))
-			log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount
+			log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount" of 25 ("$((exitLoopCount * delay))" s passed)"
 			/bin/sleep $delay
 			if [ $exitLoopCount -eq 25 ]; then
 				log "$jobstr: did not find "$basename".lock after "$exitLoopCount" attempts..."
