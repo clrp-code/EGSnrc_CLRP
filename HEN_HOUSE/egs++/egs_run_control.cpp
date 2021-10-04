@@ -758,13 +758,23 @@ bool EGS_JCFControl::writeControlFile() {
 }
 
 EGS_I64 EGS_JCFControl::getNextChunk() {
-    if (!readControlFile()) {
-        return -1;
-    }
     if (first_time) {
         first_time = false;
         njob++;
+		
+		// Wait up to 1 minute for file to be generated
+		int waitFlag = 0, waitInterval = 5; 
+		while (!readControlFile()) {
+			sleep(waitInterval*1000);
+			waitFlag += waitInterval;
+			if (waitFlag > 60)
+				return -1;
+		}
     }
+	else if (!readControlFile()) {
+		return -1;
+	}
+	
     double sum, sum2, count;
     app->getCurrentResult(sum,sum2,norm,count);
     tsum += sum - last_sum;
