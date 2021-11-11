@@ -147,6 +147,7 @@ for job in $(seq 1 $nthread); do
         printf "$(timestamp): $jobstr: BEGIN host=\$(hostname) pid=$$\n" > $basename.egsjob
         log "BEGIN host=$(hostname)"
     fi
+	
     log "$jobstr: RUN $runcommand"
     log "$jobstr: host=$(hostname) pid=$pid"
 	
@@ -156,9 +157,9 @@ for job in $(seq 1 $nthread); do
 		exitLoopCount=0
 		while [ ! -f $basename".lock" ]; do
 			exitLoopCount=$((exitLoopCount + 1))
-			log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount" of 25 ("$((exitLoopCount * delay))" s passed)"
+			log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount
 			/bin/sleep $delay
-			if [ $exitLoopCount -eq 25 ]; then
+			if [ $exitLoopCount -eq 10 ]; then
 				log "$jobstr: did not find "$basename".lock after "$exitLoopCount" attempts..."
 				log "$jobstr: ensure "$basename"runs interactively or try using longer delay,"
 				log "$jobstr: aborting submission script."
