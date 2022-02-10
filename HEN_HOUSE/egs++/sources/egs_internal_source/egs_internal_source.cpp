@@ -84,7 +84,7 @@ EGS_InternalSource::EGS_InternalSource(EGS_Input *input,
 		egsFatal("EGS_InternalSource: no \"weights\" input found\n"); // This was often too subtle a warning
 		//table = new EGS_SimpleAliasTable(reg->size(),&vector<EGS_Float>(reg->size(),1.0)[0]);
 	} else if (!err3) {
-		ifstream actFile(activity_name);
+		ifstream actFile(activity_name.c_str());
 
         if (actFile) {
             int readInt;
