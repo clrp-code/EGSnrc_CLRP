@@ -159,7 +159,7 @@ for job in $(seq 1 $nthread); do
 			exitLoopCount=$((exitLoopCount + 1))
 			log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount
 			/bin/sleep $delay
-			if [ $exitLoopCount -eq 10 ]; then
+			if [ $exitLoopCount -eq 12 ]; then
 				log "$jobstr: did not find "$basename".lock after "$exitLoopCount" attempts..."
 				log "$jobstr: ensure "$basename"runs interactively or try using longer delay,"
 				log "$jobstr: aborting submission script."
