@@ -34,6 +34,7 @@
 */
 #include <cstdlib>
 #include <fstream>
+#include <sstream>
 // We derive from EGS_AdvancedApplication => need the header file.
 #include "egs_advanced_application.h" 
 // We use scoring objects provided by egspp => need the header file.
