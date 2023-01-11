@@ -151,22 +151,24 @@ for job in $(seq 1 $nthread); do
     log "$jobstr: RUN $runcommand"
     log "$jobstr: host=$(hostname) pid=$pid"
 	
-	/bin/sleep $delay
+    /bin/sleep $delay
 	
-    if [ $job -eq 1 ]; then
-		exitLoopCount=0
-		while [ ! -f $basename".lock" ]; do
-			exitLoopCount=$((exitLoopCount + 1))
-			log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount
-			/bin/sleep $delay
-			if [ $exitLoopCount -eq 12 ]; then
-				log "$jobstr: did not find "$basename".lock after "$exitLoopCount" attempts..."
-				log "$jobstr: ensure "$basename"runs interactively or try using longer delay,"
-				log "$jobstr: aborting submission script."
-				exit
-			fi	
-		done
-	fi	
+    if [[ $command != *"-u "* ]] && [[ $command != *"--urc"* ]]; then
+        if [ $job -eq 1 ]; then
+	    exitLoopCount=0
+	    while [ ! -f $basename".lock" ]; do
+	        exitLoopCount=$((exitLoopCount + 1))
+		log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount
+		/bin/sleep $delay
+		if [ $exitLoopCount -eq 12 ]; then
+		    log "$jobstr: did not find "$basename".lock after "$exitLoopCount" attempts..."
+		    log "$jobstr: ensure "$basename"runs interactively or try using longer delay,"
+		    log "$jobstr: aborting submission script."
+		    exit
+		fi	
+	    done
+	fi
+    fi
 done
 
 # wait for all simulations to finish
