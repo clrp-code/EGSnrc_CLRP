@@ -23,7 +23,7 @@
 #
 #  Author:          Reid Townson, 2016
 #
-#  Contributors:
+#  Contributors:    Martin Martinov
 #
 ###############################################################################
 */
@@ -41,7 +41,7 @@
 
 EGS_RadionuclideSource::EGS_RadionuclideSource(EGS_Input *input,
         EGS_ObjectFactory *f) : EGS_BaseSource(input,f),
-    baseSource(0), q_allowed(0), decays(0), activity(1) {
+    baseSource(0), q_allowed(0), decays(0), activity(1), sCount(0) {
 
     int err;
     vector<int> tmp_q;
@@ -69,7 +69,7 @@ EGS_RadionuclideSource::EGS_RadionuclideSource(EGS_Input *input,
 
     // Create the decay spectra
     count = 0;
-	sCount = 0;
+    sCount = 0;
     Emax = 0;
     unsigned int i = 0;
     EGS_Float spectrumWeightTotal = 0;
@@ -101,8 +101,7 @@ EGS_RadionuclideSource::EGS_RadionuclideSource(EGS_Input *input,
         ++i;
     }
     if (decays.size() < 1) {
-        egsWarning("\nEGS_RadionuclideSource: Error: No spectrum of type EGS_RadionuclideSpectrum was defined.\n\n");
-        return;
+        egsFatal("\nEGS_RadionuclideSource: Error: No spectrum of type EGS_RadionuclideSpectrum was defined.\n");
     }
 
     // Normalize the spectrum weights
@@ -149,18 +148,26 @@ EGS_RadionuclideSource::EGS_RadionuclideSource(EGS_Input *input,
     // Get the active application
     app = EGS_Application::activeApplication();
 
+    // Check for deprecated inputs
+    string dummy;
+    err = input->getInput("source type",dummy);
+    int err2 = input->getInput("geometry",dummy);
+    if (!err || !err2) {
+        egsWarning("\nEGS_RadionuclideSource: Warning: Inputs for defining the radionuclide source as an isotropic or collimated source (e.g. 'source type') are deprecated. Please see the documentation - define the type of source separately and then refer to it using the new 'base source' input.\n");
+    }
+
+
     // Import base source
     err = input->getInput("base source",sName);
-	if (err) {
-		egsWarning("EGS_RadionuclideSource: base source must be defined\n"
-				   "using 'base source = some_name'\n");
-	}
-	baseSource = EGS_BaseSource::getSource(sName);
-	if (!baseSource) {
-		egsWarning("EGS_RadionuclideSource: no source named %s"
-				   " is defined\n",sName.c_str());
-	}
-	
+    if (err) {
+        egsFatal("\nEGS_RadionuclideSource: Error: Base source must be defined\n"
+                 "using 'base source = some_name'\n");
+    }
+    baseSource = EGS_BaseSource::getSource(sName);
+    if (!baseSource) {
+        egsFatal("\nEGS_RadionuclideSource: Error: no source named %s"
+                 " is defined\n",sName.c_str());
+    }
     // Initialize emission type to signify nothing has happened yet
     emissionType = 99;
 
@@ -219,11 +226,11 @@ EGS_I64 EGS_RadionuclideSource::getNextParticle(EGS_RandomGenerator *rndm, int
     }
 
     q = decays[i]->getCharge();
-	int qTemp (q), latchTemp (latch);
-	EGS_Float ETemp (E);
-	baseSource->getNextParticle(rndm, qTemp, latchTemp, ETemp, wt, x, u);
-	sCount++;
-	latch = 0;
+    int qTemp(q), latchTemp(latch);
+    EGS_Float ETemp(E);
+    baseSource->getNextParticle(rndm, qTemp, latchTemp, ETemp, wt, x, u);
+    sCount++;
+    latch = 0;
 
     if (disintegrationOccurred) {
         xOfDisintegration = x;
@@ -284,9 +291,9 @@ void EGS_RadionuclideSource::setUp() {
         if (std::find(q_allowed.begin(), q_allowed.end(), 1) != q_allowed.end()) {
             description += " alphas";
         }
-		
-		description += "\nBase source description:\n";
-		description += baseSource->getSourceDescription();
+
+        description += "\nBase source description:\n";
+        description += baseSource->getSourceDescription();
     }
 }
 
@@ -298,7 +305,7 @@ bool EGS_RadionuclideSource::storeState(ostream &data_out) const {
     }
     egsStoreI64(data_out,count);
     egsStoreI64(data_out,sCount);
-	baseSource->storeState(data_out);
+    baseSource->storeState(data_out);
 
     return true;
 }
@@ -315,7 +322,7 @@ bool EGS_RadionuclideSource::addState(istream &data) {
     count += tmp_val;
     egsGetI64(data,tmp_val);
     sCount += tmp_val;
-	baseSource->addState(data);
+    baseSource->addState(data);
 
     return true;
 }
@@ -326,8 +333,8 @@ void EGS_RadionuclideSource::resetCounter() {
     }
     ishower = 0;
     count = 0;
-	sCount = 0;
-	baseSource->resetCounter();
+    sCount = 0;
+    baseSource->resetCounter();
 }
 
 bool EGS_RadionuclideSource::setState(istream &data) {
@@ -338,7 +345,7 @@ bool EGS_RadionuclideSource::setState(istream &data) {
     }
     egsGetI64(data,count);
     egsGetI64(data,sCount);
-	baseSource->setState(data);
+    baseSource->setState(data);
 
     return true;
 }

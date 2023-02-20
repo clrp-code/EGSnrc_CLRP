@@ -1,3 +1,6 @@
+[submodule "third-party/3ddose_tools"]
+	path = third-party/3ddose_tools
+	url = https://github.com/MartinMartinov/3ddose_tools
 [submodule "HEN_HOUSE/user_codes/egs_brachy"]
 	path = HEN_HOUSE/user_codes/egs_brachy
 	url = https://github.com/clrp-code/egs_brachy.git

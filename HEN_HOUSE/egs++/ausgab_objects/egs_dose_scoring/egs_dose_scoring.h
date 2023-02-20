@@ -214,7 +214,7 @@ public:
         }
 
         /*** Check if scoring in current region ***/
-        if (dose) {
+        if (ir >= 0 && dose) {
             if (d_reg_index[ir]<0) {
                 return 0;
             }
@@ -247,7 +247,7 @@ public:
         }
 
         /*** Check if scoring in current region ***/
-        if (dose) {
+        if (ir >= 0 && dose) {
             if (d_reg_index[ir]<0) {
                 return 0;
             }
@@ -303,6 +303,11 @@ public:
 		int med = dose_geom->medium(ireg);
 		return dose_geom->getRelativeRho(ireg)*app->getMediumRho(med);
 	}
+
+    EGS_Float getRealRho(int ireg) {
+        int med = dose_geom->medium(ireg);
+        return dose_geom->getRelativeRho(ireg)*app->getMediumRho(med);
+    }
 
     void setVol(const vector<EGS_Float> volin) {
         vol_list=volin;

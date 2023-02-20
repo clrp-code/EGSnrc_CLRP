@@ -1119,11 +1119,11 @@ public:
 
 
     EGS_Float getVolume(int ireg) {
-		int iz = ireg/nxy;
-		int ir = ireg - iz*nxy;
-		int iy = ir/nx;
-		int ix = ir - iy*nx;
-		return (xpos[ix+1]-xpos[ix])*(ypos[iy+1]-ypos[iy])*(zpos[iz+1]-zpos[iz]);
+        int iz = ireg/nxy;
+        int ir = ireg - iz*nxy;
+        int iy = ir/nx;
+        int ix = ir - iy*nx;
+        return (xpos[ix+1]-xpos[ix])*(ypos[iy+1]-ypos[iy])*(zpos[iz+1]-zpos[iz]);
     }
 
     EGS_Float getBound(int idir, int ind) {

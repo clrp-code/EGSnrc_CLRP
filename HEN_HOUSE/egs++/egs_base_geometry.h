@@ -234,7 +234,7 @@ public:
     /*! \brief Calculates the volume of region ireg.
 
       Currently only implemented EGS_XYZGeometry, EGS_cSpheres,
-	  EGS_cSphericalShell, EGS_AEnvelope, and EGS_RZGeometry
+      EGS_cSphericalShell, EGS_AEnvelope, and EGS_RZGeometry
     */
     virtual EGS_Float getVolume(int ireg) {
         return 1.0;
