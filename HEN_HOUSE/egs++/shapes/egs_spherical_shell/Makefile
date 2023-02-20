@@ -1,4 +1,3 @@
-
 ###############################################################################
 #
 #  EGSnrc egs++ makefile to build spherical shell shape
@@ -29,7 +28,6 @@
 #                   Dave Rogers
 #
 ###############################################################################
-
 
 include $(EGS_CONFIG)
 include $(SPEC_DIR)egspp.spec

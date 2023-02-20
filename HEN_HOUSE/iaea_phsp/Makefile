@@ -38,8 +38,8 @@ library = iaea_phsp
 lib_files = iaea_phsp iaea_header iaea_record  utilities
 my_common_deps = utilities.h iaea_config.h
 
-DSO2 = ..$(DSEP)$(EGSPP)$(DSEP)dso$(DSEP)$(my_machine)$(DSEP)
-IEGS2 = ..$(DSEP)lib$(DSEP)$(my_machine)
+DSO2 = $(HEN_HOUSE)$(DSEP)$(EGSPP)$(DSEP)dso$(DSEP)$(my_machine)$(DSEP)
+IEGS2 = $(HEN_HOUSE)$(DSEP)lib$(DSEP)$(my_machine)
 INC2 = -I$(IEGS2)
 common_h =
 link2_libs =

@@ -48,9 +48,9 @@ EGS_RadionuclideSource::EGS_RadionuclideSource(EGS_Input *input,
     err = input->getInput("charge", tmp_q);
     if (!err) {
         if (std::find(q_allowed.begin(), q_allowed.end(), -1) != q_allowed.end()
-                && std::find(q_allowed.begin(), q_allowed.end(), 0) != q_allowed.end()
-                && std::find(q_allowed.begin(), q_allowed.end(), 1) != q_allowed.end()
-                && std::find(q_allowed.begin(), q_allowed.end(), 2) != q_allowed.end()
+			&& std::find(q_allowed.begin(), q_allowed.end(), 0) != q_allowed.end()
+			&& std::find(q_allowed.begin(), q_allowed.end(), 1) != q_allowed.end()
+			&& std::find(q_allowed.begin(), q_allowed.end(), 2) != q_allowed.end()
            ) {
             q_allowAll = true;
         }
@@ -168,7 +168,6 @@ EGS_RadionuclideSource::EGS_RadionuclideSource(EGS_Input *input,
         egsFatal("\nEGS_RadionuclideSource: Error: no source named %s"
                  " is defined\n",sName.c_str());
     }
-
     // Initialize emission type to signify nothing has happened yet
     emissionType = 99;
 

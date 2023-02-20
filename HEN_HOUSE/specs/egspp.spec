@@ -42,7 +42,7 @@ ABS_DSO = $(abs_dso)$(DSEP)
 
 # Ther relative path to the egs++ directory from the directories of
 # individual geometry and source libraries.
-DSOLIBS = ..$(DSEP)..$(DSEP)
+DSOLIBS = $(HEN_HOUSE)$(EGSPP)$(DSEP)
 
 # These get used in constructing file names
 DSO1 = $(dso)$(DSEP)
@@ -61,7 +61,7 @@ IEGS2 = $(DSOLIBS)$(IEGS1)
 link2_libs = egspp
 
 INC1 = -I$(IEGS1)
-INC2 = -I$(IEGS2) -I..$(DSEP)..
+INC2 = -I$(IEGS2) -I$(DSOLIBS)
 
 common_shape_deps = egs_shapes.h egs_rndm.h egs_object_factory.h \
                     egs_transformations.h

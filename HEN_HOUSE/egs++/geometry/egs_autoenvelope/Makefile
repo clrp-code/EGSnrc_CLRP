@@ -1,4 +1,3 @@
-
 ###############################################################################
 #
 #  EGSnrc egs++ makefile to build auto envelope geometry

@@ -1,4 +1,3 @@
-
 ###############################################################################
 #
 #  EGSnrc egs++ makefile to build rz geometry
@@ -52,6 +51,7 @@ $(DSO2)$(library).$(obje): ndgeom cyls planes
 $(ABS_DSO)$(libpre)$(library)$(libext): ndgeom cyls planes
 
 ndgeom:
+
 	cd ..$(DSEP)egs_nd_geometry && $(MAKE)
 
 cyls:

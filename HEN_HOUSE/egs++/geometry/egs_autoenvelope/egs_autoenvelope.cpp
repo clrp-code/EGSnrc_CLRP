@@ -232,6 +232,7 @@ bool EGS_AEnvelope::isRealRegion(int ireg) const {
 
 bool EGS_AEnvelope::isInside(const EGS_Vector &x) {
     return base_geom->isInside(x);
+
 };
 
 
@@ -272,6 +273,7 @@ int EGS_AEnvelope::medium(int ireg) const {
     volcor::GeomRegPairT local = getLocalFromGlobalReg(ireg);
 
     return local.first->medium(local.second);
+
 };
 
 vector<EGS_BaseGeometry *> EGS_AEnvelope::getGeomsInRegion(int ireg) {

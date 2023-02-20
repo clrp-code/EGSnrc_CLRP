@@ -75,7 +75,7 @@ else
     test_egs_home=$(cd $my_dir/../..; pwd)/egs_home
 fi
 
-cpp_user_codes="cavity egs_app egs_cbct egs_chamber egs_fac egs_kerma egs_phd tutor2pp tutor7pp"
+cpp_user_codes="cavity egs_app egs_brachy egs_cbct egs_chamber egs_fac egs_kerma egs_phd tutor2pp tutor7pp"
 # Now explain to the user what this script is going to do.
 #
 cat >&2 <<_ACEOF
@@ -267,6 +267,9 @@ if test "x$new_egs_home" = xyes; then
     copy_list=
     for uc in $test_list; do
         if test -d $HEN_HOUSE/user_codes/$uc && test $uc != pegs4 && test $uc != bin; then
+            if test $uc = egs_brachy; then
+                uc="$uc/$uc"
+            fi
             copy_list="$copy_list $uc"
         fi
     done

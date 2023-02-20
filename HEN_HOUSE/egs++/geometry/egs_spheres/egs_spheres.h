@@ -87,6 +87,7 @@ Examples of the usage of sets of spheres can be found in the
 \c cones.geom, \c hemisphere.geom, \c mushroom.geom, \c rounded_ionchamber.geom
 and \c I6702.inp example geometry files.
 
+
 A simple example:
 
 \verbatim

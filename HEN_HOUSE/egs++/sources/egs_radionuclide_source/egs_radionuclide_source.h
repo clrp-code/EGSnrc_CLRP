@@ -293,7 +293,7 @@ public:
     /*! \brief Gets the next particle from the radionuclide spectra */
     EGS_I64 getNextParticle(EGS_RandomGenerator *rndm,
                             int &q, int &latch, EGS_Float &E, EGS_Float &wt,
-                            EGS_Vector &x, EGS_Vector &u);
+                            EGS_Vector &x, EGS_Vector &u); 
 
     /*! \brief Returns the maximum energy out of all the spectra */
     EGS_Float getEmax() const {
