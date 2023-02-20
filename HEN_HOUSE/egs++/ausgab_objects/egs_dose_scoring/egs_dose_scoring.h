@@ -299,11 +299,6 @@ public:
         return (int)log10((float)imax);
     };
 	
-	EGS_Float getRealRho(int ireg) {
-		int med = dose_geom->medium(ireg);
-		return dose_geom->getRelativeRho(ireg)*app->getMediumRho(med);
-	}
-
     EGS_Float getRealRho(int ireg) {
         int med = dose_geom->medium(ireg);
         return dose_geom->getRelativeRho(ireg)*app->getMediumRho(med);
