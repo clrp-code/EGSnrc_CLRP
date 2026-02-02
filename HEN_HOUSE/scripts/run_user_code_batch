@@ -1,59 +1,38 @@
-#!/bin/sh
-###############################################################################
+#! /bin/sh
+#******************************************************************************
 #
-#  EGSnrc script to submit jobs to a job scheduler
-#  Copyright (C) 2015 National Research Council Canada
+# $Id: run_user_code_batch,v 1.30 2012/08/22 13:50:36 ftessier Exp $
 #
-#  This file is part of EGSnrc.
+#  Copyright Iwan Kawrakow and the National Research Council of Canada
+#  iwan@irs.phy.nrc.ca
 #
-#  EGSnrc is free software: you can redistribute it and/or modify it under
-#  the terms of the GNU Affero General Public License as published by the
-#  Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
+#  This script is free software; you can redistribute it and/or modify  
+#  it under the terms of the GNU General Public License as published by  
+#  the Free Software Foundation; either version 2 of the License, or 
+#  (at your option) any later version.
 #
-#  EGSnrc is distributed in the hope that it will be useful, but WITHOUT ANY
-#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-#  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
-#  more details.
+#=============================================================================
 #
-#  You should have received a copy of the GNU Affero General Public License
-#  along with EGSnrc. If not, see <http://www.gnu.org/licenses/>.
-#
-###############################################################################
-#
-#  Author:          Iwan Kawrakow, 2003
-#
-#  Contributors:    Dave Rogers
-#                   Ernesto Mainegra-Hing
-#                   Frederic Tessier
-#                   Blake Walters
-#                   Marc-Andre Renaud
-#
-###############################################################################
-#
-#  Submits EGSnrc jobs to a queueing system. The queueing system used is
-#  determined by the environment variable EGS_BATCH_SYSTEM or by the argument
-#  batch=xxx.
-#
-#  If EGS_BATCH_SYSTEM is set or the batch=xxx argument is given, this script
-#  sources
-#
+# Script for submitting EGSnrc jobs to a queueing system.
+# The queueing system used is determined by the environment 
+# variable EGS_BATCH_SYSTEM or by the argument batch=xxx.
+# If EGS_BATCH_SYSTEM is set or the batch=xxx argument is given, 
+# this script sources 
 #     $HEN_HOUSE/scripts/batch_options.$EGS_BATCH_SYSTEM
-#  or $HEN_HOUSE/scripts/batch_options.xxx
-#
-#  which defines things such as batch command, generic batch options, request
-#  naming batch options, queue names, etc. (see batch_options.nqs,
-#  batch_options.pbs and batch_options.at for three different settings
-#  provided with the distribution).
-#
-#  If EGS_BATCH_SYSTEM is not set, $HEN_HOUSE/scripts/batch_options.at is used.
-#
-#  You may add your own queueing system options by copying one of the provided
-#  files to batch_options.xxx, adjusting the various variables and defining
-#  EGS_BATCH_SYSTEM to be xxx.
-#
-###############################################################################
+# or  $HEN_HOUSE/scripts/batch_options.xxx
+# which defines things such as batch command, generic batch options, 
+# request naming batch options, queue names, etc. 
+# (see batch_options.nqs, batch_options.pbs and batch_options.at for three 
+#  different settings provided with the distribution).
+# If EGS_BATCH_SYSTEM is not set, $HEN_HOUSE/scripts/batch_options.at 
+# gets used.
+# You may add your own queueing system options by copying one 
+# of the provided files to batch_options.xxx, adjusting the various 
+# variables and defining EGS_BATCH_SYSTEM to be xxx.
+# 
+#******************************************************************************
 
+unset module # To handle 'unexpected end of file' error
 
 my_name=`echo "$0" |sed 's,.*[\\/],,'`
 if test $# -lt 3; then
@@ -62,14 +41,14 @@ if test $# -lt 3; then
 Usage: $my_name user_code input_file pegs_file [noopt] [config=xxx]
                 [short|long|user1|user2|user3] [batch=batch_system] [p=N]
 
-$my_name runs the user code user_code, using input_file as input file
-(use two double quotes if there is no input file needed) and pegs_file
-as pegs4 data file. The optional argument noopt tells the script to
+$my_name runs the user code user_code, using input_file as input file 
+(use two double quotes if there is no input file needed) and pegs_file 
+as pegs4 data file. The optional argument noopt tells the script to 
 use the executable compiled without optimizations, using config=xxx
-you can use a configuration different from the one specified by the
+you can use a configuration different from the one specified by the 
 environment variable EGS_CONFIG.
 
-One can also select the batch system by setting the batch variable
+One can also select the batch system by setting the batch variable 
 on the command line and set the queue type (short,long,user1,user2,user3).
 For parallel job submission one needs to pass the number of jobs
 by setting the variable p to the number of jobs N.
@@ -78,7 +57,7 @@ EOF
     exit 1
 fi
 
-# The following is to be compatible with the egs_run scripts
+# The following is to be compatible with the egs_run scripts 
 # prior to EGSnrc version 4.
 #
 user_code=$1
@@ -103,6 +82,98 @@ if test "x$EGS_BATCH_SYSTEM" != x; then
     egs_batch_system="$EGS_BATCH_SYSTEM"
 fi
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MARTIN CHANGES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Additional Variables ~~~~~~~~~~~~~~~~~#
+
+# For whatever reason, egspp doesnt like it when you append a .egsinp to the
+# input file name, so theoretically you should remove the '.egsinp' from
+# input_file as mortran doesn't care.  I use inputName here instead to try and
+# keep the base of the script unchanged
+inputName=$(echo "$input_file" | sed 's/.egsinp//')
+echo $input_file
+# This will be the default time waited between jobs.  Can be set manually using
+# t=X
+waitTime=1
+
+# This will be the name of the process once it is submitted, default value of
+# the input file name.  Can be set manually using n=X
+jobName=${inputName}
+
+# Used to look for lock file
+startCheckFlag=1
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+# Extra Checks ~~~~~~~~~~~~~~~~~~~~~~~~~#
+# These are mostly to keep user from making common mistakes that create issues
+# for the disk or cluster they are using
+
+# Particle Tracks ~~~~~~~~~~~~~~~~~~~~~~#
+if [ -e "$EGS_HOME/${user_code}/${inputName}.egsinp" ]; then
+    tracks=$(grep 'score photons' "$EGS_HOME/${user_code}/${inputName}.egsinp" | cut -d '#' -f 1)
+    tracks=${tracks}$(grep 'score electrons' "$EGS_HOME/${user_code}/${inputName}.egsinp" | cut -d '#' -f 1)
+    tracks=${tracks}$(grep 'score positrons' "$EGS_HOME/${user_code}/${inputName}.egsinp" | cut -d '#' -f 1)
+    tracks=$(echo "${tracks}" | grep 'yes')
+    if test "x$tracks" != x; then
+	echo "The file you are trying to submit has track scoring turned on,"
+	echo "it is recommended you turn it off before submitting."
+	echo ""
+	
+	while true; do
+	    read -p "Would you like to continue anyway? " yn
+	    case $yn in
+		[Yy]* )
+		break;;
+		
+		[Nn]* )
+		echo "Quitting..."
+		exit 1 # I have no idea what flag to use here
+		break;;
+		
+		* ) echo "Please answer y or n.";;
+	    esac
+	done
+    fi
+fi
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+# IWATCH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+if [ -e "$EGS_HOME/${user_code}/${inputName}.egsinp" ]; then
+    iwatch=$(grep 'IWATCH' "$EGS_HOME/${user_code}/${inputName}.egsinp" | grep '=' | cut -d '#' -f 1)
+    if test "x$iwatch" != x; then
+	iwatch=$(echo "${iwatch}" | grep 'off')
+	if test "x$iwatch" = x; then
+	    echo "The file you are trying to submit has IWATCH turned on,"
+	    echo "it is recommended you turn it off before submitting."
+	    echo ""
+	    
+	    while true; do
+		read -p "Would you like to continue anyway? " yn
+		case $yn in
+		    [Yy]* )
+		    break;;
+		    
+		    [Nn]* )
+		    echo "Quitting..."
+		    exit 1 # I have no idea what flag to use here
+		    break;;
+		    
+		    * ) echo "Please answer y or n.";;
+		esac
+	    done
+	fi
+    fi
+fi
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+    
+# Batch Output ~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Create a folder in which to place all the .eo files, because they can really
+# clutter up the home area
+if [[ ! -e "/home/${USER}/batch_eo_files/" ]]; then
+    mkdir /home/${USER}/batch_eo_files/
+fi
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 shift 3
 
@@ -118,9 +189,9 @@ while test $# -gt 0; do
          debug)  cat >&2 <<EOF
 
 This script does not support debug runs.
-To do a debug run, start your debugger with
-$egs_home/bin/my_machine/${user_code}_debug
-as argument (my_machine is the name you gave to the configuration
+To do a debug run, start your debugger with 
+$egs_home/bin/my_machine/${user_code}_debug 
+as argument (my_machine is the name you gave to the configuration 
 that you want to debug) and then type
 
 run -p $pegs_file -i $input_file
@@ -143,6 +214,15 @@ EOF
        start=*)  start_job=`echo $1 | sed 's/start=//'`;;
         stop=*)  stop_job=`echo $1 | sed 's/stop=//'`;;
       fresh=no)  fresh=no ;;
+      
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MARTIN CHANGES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Parsing Variables ~~~~~~~~~~~~~~~~~~~~#
+           t=*)  waitTime=`echo $1 | sed 's/t=//'` ;;
+           n=*)  jobName=`echo $1 | sed 's/n=//'` ;;
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
              *) # concatenate everything else to other_args
                 # and hope that the user knows what they are doing.
                 if test "x$other_args" = x; then
@@ -150,7 +230,7 @@ EOF
                 else
                     other_args="$other_args $1"
                 fi
-                ;;
+                ;; 
 
     esac
     shift
@@ -165,7 +245,7 @@ if test "x$egs_home" = x; then
     if test "x$egs_home" = x; then
       cat >&2 <<EOF
 
-The environment variable EGS_HOME is not set, you have not passed it
+The environment variable EGS_HOME is not set, you have not passed it 
 as an argument to this script and there is no .egsnrcrc file
 in your home directory specifying EGS_HOME. Please correct and retry.
 
@@ -179,8 +259,8 @@ if test "x$egs_configuration" = x; then
     if test "x$EGS_CONFIG" = x; then
         cat >&2 <<EOF
 
-The environment variable 'EGS_CONFIG' is not set. You have to either
-define EGS_CONFIG to point to a valid EGSnrc config file or
+The environment variable 'EGS_CONFIG' is not set. You have to either 
+define EGS_CONFIG to point to a valid EGSnrc config file or 
 you must run this script as
     $my_name ... config=some_config_file
 
@@ -189,7 +269,7 @@ EOF
     fi
     cat >&2 <<EOF
 
-There should be no spaces between 'config=' and the name of the configuration
+There should be no spaces between 'config=' and the name of the configuration 
 file!
 
 EOF
@@ -200,8 +280,8 @@ if test ! -f "$egs_configuration"; then
 
     cat >&2 <<EOF
 
-The file $egs_configuration does not exist. The environment variable
-EGS_CONFIG or the config=some_config command line option must
+The file $egs_configuration does not exist. The environment variable 
+EGS_CONFIG or the config=some_config command line option must 
 define the absolute path to a valid EGSnrc config file.
 
 EOF
@@ -238,7 +318,7 @@ if test -f "$hen_house/scripts/config.guess"; then
     if test "x$test_system" != "x$canonical_system"; then
         cat >&2 <<EOF
 
-The canonical system as returned by config.guess ($test_system) is not the
+The canonical system as returned by config.guess ($test_system) is not the 
 same as the one found in the config file ($canonical_system).
 I hope you know what you are doing.
 
@@ -289,7 +369,7 @@ if test ! -x $executable; then
     fi
 fi
 
-if test "$pegs_file" = pegsless; then
+if test $pegs_file = "pegsless"; then
     command="$executable -b"
 else
     command="$executable -p $pegs_file -b"
@@ -302,7 +382,7 @@ fi
 command="$command -e $egs_home -H $hen_house $rc_simple"
 
 # export the important environent variables just in case.
-# note the -x option for nqs, which exports the environment of the
+# note the -x option for nqs, which exports the environment of the 
 # calling process to the nqs job.
 #
 export EGS_HOME="$egs_home"
@@ -315,13 +395,12 @@ else
     cat  >&2 <<EOF
 
 The file $hen_house/scripts/batch_options.$egs_batch_system does not exist.
-Please either define the environment variable EGS_BATCH_SYSTEM
-or pass an existing batch system definition file extension as argument to this
+Please either define the environment variable EGS_BATCH_SYSTEM 
+or pass an existing batch system definition file extension as argument to this 
 script using batch=xxx and retry.
 
 EOF
 fi
-
 # Now define the queue based on the value stored in queue1
 #
 case $queue1 in
@@ -364,6 +443,22 @@ if test $egs_batch_system = at; then
     fi
 fi
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MARTIN CHANGES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Modify Batch Options ~~~~~~~~~~~~~~~~~#
+# Edit what we need to before entering the submission loops but after the batch_options file is loaded
+    batch_sleep_time=$waitTime
+    other_args=" -N "${jobName}" "${other_args}" -cwd"
+
+if [ -e "/home/${USER}/batch_eo_files/${basename}_w1.eo" ] ; then
+    rm "/home/${USER}/batch_eo_files/${basename}_w*.eo" -f
+fi
+if [ -e "/home/${USER}/batch_eo_files/${basename}.eo" ] ; then
+    rm "/home/${USER}/batch_eo_files/${basename}.eo" -f
+fi
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 ###############################################################################
 # pbsdsh runs
@@ -378,8 +473,8 @@ if test $egs_batch_system = "pbsdsh"; then
 
     # batch options for scheduler
     batch_options="$generic_bo"
-    if test -n "$output_bo"; then
-        batch_options="$batch_options $output_bo ${basename}.eo"
+    if test -n "$output_bo"; then # Added location for .eo files
+        batch_options="$batch_options $output_bo /home/${USER}/batch_eo_files/${basename}.eo"
     fi
     if test -n "$rname_bo"; then
         rn="${user_code}_${basename}_($n_parallel)"
@@ -415,7 +510,7 @@ fi
 
 
 if test $n_parallel -gt 0; then
-  command="$command -P $n_parallel"
+  command="hostname; $command -P $n_parallel"
   #job=0
   job=$start_job
   first_job=`expr $start_job + 1`
@@ -424,8 +519,8 @@ if test $n_parallel -gt 0; then
     #if test $job -gt $n_parallel; then break; fi
     if test $job -gt $stop_job; then break; fi
     batch_options="$generic_bo"
-    if test "x$output_bo" != x; then
-        batch_options="$batch_options $output_bo ${input_file}_w${job}.eo"
+    if test "x$output_bo" != x; then # Added location for .eo files
+        batch_options="$batch_options $output_bo /home/${USER}/batch_eo_files/${input_file}_w${job}.eo"
     fi
     if test "x$rname_bo" != x; then
         rn="${user_code}_${input_file}_w${job}"
@@ -447,18 +542,34 @@ if test $n_parallel -gt 0; then
         echo "Executing $the_command using $batch_command"
         echo "batch options: $batch_options $queue $other_args"
     else
-        if test $egs_batch_system = "slurm"; then
-            ${batch_command} <<EOF
-#!/bin/sh
-#SBATCH ${generic_bo}
-#SBATCH ${output_bo} ${input_file}_w${job}.eo
-#SBATCH ${rname_bo} j${rname}
-#SBATCH ${queue}
-${the_command}
-EOF
-        else
-            echo "$the_command" | $batch_command $batch_options $queue $other_args
-        fi
+	  
+	    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+	    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MARTIN CHANGES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+	    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+	    # Modify Batch Options ~~~~~~~~~~~~~~~~~#
+
+	    # ~~ Liz added simple type check ~~ #
+	    # check if job type is not simple
+		if [ -z "$rc_simple" ]; then
+
+	    # Only submit non-first files after lock has been created 
+		if [ $job == $(($start_job + 2)) ]  ; then
+	  	  printf "Waiting for ${EGS_HOME}/${user_code}/${input_file}.lock file generation"
+		fi
+	    while test $job == $(($start_job + 2)); do
+	  	  if [ -e "${EGS_HOME}/${user_code}/${input_file}.lock" ] ; then
+		    echo " found."
+	  	    break
+		  else
+			printf "."
+			sleep $batch_sleep_time
+	  	  fi
+	    done
+	    # ~~ end simple type check ~~ #
+	    fi 
+	    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+	    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        echo "$the_command" | $batch_command $batch_options $queue $other_args
     fi
     if test "x$batch_sleep_time" != x; then
         sleep $batch_sleep_time
@@ -466,8 +577,8 @@ EOF
   done
 else
   batch_options="$generic_bo"
-  if test "x$output_bo" != x; then
-      batch_options="$batch_options $output_bo ${input_file}.eo"
+  if test "x$output_bo" != x; then # Added location for .eo files
+      batch_options="$batch_options $output_bo /home/${USER}/batch_eo_files/${input_file}.eo"
   fi
   if test "x$rname_bo" != x; then
       rn="${user_code}_${input_file}"
@@ -479,23 +590,12 @@ else
           rname=$rn
       fi
       batch_options="$batch_options $rname_bo j$rname"
-  fi
+  fi 
   if test "x$testing" = xyes; then
       echo "Executing $command using $batch_command"
       echo "batch options: $batch_options $queue $other_args"
   else
-      if test $egs_batch_system = "slurm"; then
-          ${batch_command} <<EOF
-#!/bin/sh
-#SBATCH ${generic_bo}
-#SBATCH ${output_bo} ${input_file}.eo
-#SBATCH ${rname_bo} j${rname}
-#SBATCH ${queue}
-${command}
-EOF
-      else
-          echo "$command" | $batch_command $batch_options $queue $other_args
-      fi
+      echo "$command" | $batch_command $batch_options $queue $other_args
   fi
 fi
 exit 0
