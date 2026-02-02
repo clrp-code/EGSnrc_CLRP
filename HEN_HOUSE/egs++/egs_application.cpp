@@ -620,7 +620,7 @@ int EGS_Application::combinePartialResults() {
 
 int EGS_Application::combineResults() {
     egsInformation(
-        "\n                      Suming the following .egsdat files:\n"
+        "\n                      Summing the following .egsdat files:\n"
         "=======================================================================\n");
     char buf[512];
     resetCounter();
