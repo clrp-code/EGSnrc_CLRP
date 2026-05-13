@@ -116,6 +116,12 @@ vector<string> getSearchPaths(string density_path){
     string eh = getenv("EGS_HOME");
     string hh = getenv("HEN_HOUSE");
 
+    if (eh.back() != '/') {
+        eh += '/';
+    }
+    if (hh.back() != '/') {
+        hh += '/';
+    }
     paths.push_back(eh + "pegs4/density_corrections/" + density_path);
     paths.push_back(eh + "pegs4/density_corrections/elements/" + density_path);
     paths.push_back(eh + "pegs4/density_corrections/compounds/" + density_path);
@@ -189,6 +195,9 @@ map<string, EGS_Float> getMedRhos(ifstream &in) {
                     if (cur_density >= 0){
                         med_rhos[cur_med_name] = cur_density;
                         break;
+                    } else {
+                        egsInformation("Failed to retrieve %s density from egs_home/pegs4", cur_med_name.c_str());
+                        egsFatal("or HEN_HOUSE/pegs4\nWas looking for %s\n", (density_f+".density").c_str());
                     }
                 }
             }
