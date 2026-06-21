@@ -1,5 +1,10 @@
 # nrc-cnrc upstream integration (EGSnrc-eb)
 
+> **DO NOT MERGE** branches named `nrc/*` into `egs_brachy`. They carry pre-merge
+> [nrc-cnrc/EGSnrc](https://github.com/nrc-cnrc/EGSnrc) changes for local dev only.
+> When upstream merges the corresponding PR, reconcile via `nrc/develop` and delete
+> the `nrc/*` branch. See [nrc/run-anywhere-pr1399](#nrcrun-anywhere-pr1399) below.
+
 This fork tracks [clrp-code/EGSnrc_CLRP](https://github.com/clrp-code/EGSnrc_CLRP) on branch `egs_brachy`, with `nrc` pointing at [nrc-cnrc/EGSnrc](https://github.com/nrc-cnrc/EGSnrc).
 
 Some NRC changes land on `develop` before we merge them into CLRP. For features still in open PRs, we carry them on dedicated **`nrc/*` branches** so day-to-day CLRP work stays clean.
