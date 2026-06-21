@@ -48,6 +48,7 @@ html
 *~
 ._*
 .vscode
+.cursor/
 .DS_Store
 .DS_Store?
 .Spotlight-V100
