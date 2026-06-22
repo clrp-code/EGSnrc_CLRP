@@ -68,19 +68,22 @@ else
     bad "tarball_extract_install_dir: $tar_out"
 fi
 
-# 6) configure log EGS_HOME wins over --egs-home on resolve_paths
+# 6) configure log EGS_HOME wins over a conflicting --egs-home
 resolve_out=$(bash -c '
     source "'"$ROOT"'/scripts/lib/common.sh"
     export EGS_CONFIG="'"$HOME"'/scratch/tarball-test/eb-release/HEN_HOUSE/specs/tarball.conf"
-    EGS_HOME_OVERRIDE="'"$HOME"'/scratch/tarball-egs_home"
+    EGS_HOME_OVERRIDE="/tmp/eb-setup-wrong-egs_home"
     resolve_paths
     echo "$EGS_HOME_RESOLVED"
 ' 2>&1)
 if [[ -f "$HOME/scratch/tarball-test/eb-release/HEN_HOUSE/log/configure-tarball-marc.log" ]]; then
-    if echo "$resolve_out" | grep -q 'eb-release/egs_home'; then
+    log_home=$(grep -E '^EGS_HOME:[[:space:]]+' \
+        "$HOME/scratch/tarball-test/eb-release/HEN_HOUSE/log/configure-tarball-marc.log" \
+        | head -1 | sed -E 's/^EGS_HOME:[[:space:]]+//;s/[[:space:]]+$//')
+    if [[ -n "$log_home" && "$resolve_out" == "${log_home%/}/" ]]; then
         ok 'resolve_paths prefers finalize log over --egs-home'
     else
-        bad "resolve_paths should use configure log EGS_HOME: $resolve_out"
+        bad "resolve_paths should use configure log ($log_home), got: $resolve_out"
     fi
 else
     ok 'resolve_paths configure-log test skipped (no tarball install)'
