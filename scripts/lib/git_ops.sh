@@ -42,6 +42,7 @@ cmd_update() {
     run make -C "$(eb_dest_path)"
     if (( STASH )); then pop_git_stashes; fi
     log "update complete"
+    emit_shell_setup
 }
 
 cmd_install() {
@@ -74,16 +75,11 @@ cmd_install() {
         log "configure complete — continuing with sync"
     fi
     cmd_sync
-    cmd_env
-    log "install complete (add exports from 'eb-setup.sh env' to your shell profile)"
+    emit_shell_setup
+    log "install complete"
 }
 
 cmd_env() {
     resolve_paths
-    echo "# Add to ~/.bashrc or ~/.zshrc:"
-    echo "# EGS_HOME must end with / (EGSnrc uses \$(EGS_HOME)bin/...)"
-    [[ -n "$EGS_CONFIG_RESOLVED" ]] && echo "export EGS_CONFIG=\"$EGS_CONFIG_RESOLVED\""
-    [[ -n "$EGS_HOME_RESOLVED" ]]    && echo "export EGS_HOME=\"$EGS_HOME_RESOLVED\""
-    echo "# optional CLRP aliases (exeb, cdeb):"
-    [[ -n "$HEN_HOUSE" ]] && echo "source \"${HEN_HOUSE%/}/scripts/clrp_bashrc_additions\""
+    emit_shell_setup
 }
