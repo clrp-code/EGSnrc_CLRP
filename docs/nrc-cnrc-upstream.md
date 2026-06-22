@@ -42,24 +42,26 @@ git fetch mchamberland-pr
 - Write run artifacts next to the input (or under `-d` / `--output-dir`)
 - Wrapper and Qt GUI updates; macOS `@loader_path` for egs++ dylibs
 
-This branch contains **only the five `#1212` commits** cherry-picked onto `egs_brachy` (not a full merge of `mchamberland-pr/run-anywhere`, which would pull unrelated `develop` history and conflict heavily).
+This branch contains the **functional `#1212` commits** cherry-picked onto `egs_brachy` (not a full merge of `mchamberland-pr/run-anywhere`). For day-to-day testing, **`dev`** is usually easier — it also has #934 and the scratch smoke test. See [branch-layout.md](branch-layout.md) on the `dev` branch.
 
 Cherry-picked commits (oldest first):
 
-1. `5c7b7db3` — Mortran core
-2. `84a672ee` — egs++
-3. `c8159a9d` — wrapper scripts
-4. `613eaa0f` — egs_gui
-5. `a1d5a4b8` — `@loader_path` dylibs
+1. `d21384cb` — Mortran core
+2. `80bceafe` — egs++
+3. `101392de` — wrapper scripts
+4. `6a1dfee3` — egs_gui
+5. `5f0822d4` — `@loader_path` dylibs
+6. `20f5a44d` — `@rpath` install names + embedded DSO rpath (macOS)
+7. `a629de6a` — JCF `.lock` / uniform RCO paths via `getOutputDir()` (matches [nrc-cnrc/EGSnrc#1399](https://github.com/nrc-cnrc/EGSnrc/pull/1399) commit `3ce3e860`)
 
 ### Local development
 
-Use this branch as the EGSnrc-eb base when you want run-anywhere for testing (e.g. eb_tests from any directory):
+Prefer **`dev`** for run-anywhere + #934 testing. Use this `nrc/*` branch for upstream-tracking or if you need the minimal cherry-pick set on `egs_brachy` only:
 
 ```bash
-cd /path/to/EGSnrc-eb
+git checkout dev                    # recommended
+# or:
 git checkout nrc/run-anywhere-pr1399
-# configure / build when ready — see main README
 ```
 
 Combine with egs_brachy feature work by checking out the submodule branch you need; the submodule pointer is independent of the EGSnrc core branch.
