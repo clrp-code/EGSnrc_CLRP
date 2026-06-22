@@ -43,11 +43,11 @@ cmd_update() {
 }
 
 cmd_install() {
-    resolve_paths; preflight_tools
+    resolve_paths; preflight_tools; check_mortran_path_lengths
     if (( ! FROM_TARBALL )); then
         if [[ ! -d "$REPO_ROOT/.git" ]]; then
             local dest
-            dest="$(expand_user_path "${INSTALL_DIR:-$HOME/Developer/scratch/EGSnrc_CLRP}")"
+            dest="$(expand_user_path "${INSTALL_DIR:-$HOME/scratch/eb}")"
             log "cloning CLRP fork to $dest..."
             run git clone https://github.com/clrp-code/EGSnrc_CLRP.git "$dest"
             REPO_ROOT="$dest"; HEN_HOUSE="$dest/HEN_HOUSE"; EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"

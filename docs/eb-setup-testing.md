@@ -19,20 +19,25 @@ export EGS_HOME=~/Developer/scratch/egs_home/
 
 Use `~/Developer/scratch` — never the main dev tree.
 
+Use a **short clone path** — Mortran fails pegs4 if `HEN_HOUSE` paths are too long (`FATAL STRING OR STATEMENT TOO LONG` in `configure.log`). Prefer `$HOME/scratch/eb` (not `EGSnrc_CLRP-test`).
+
 Use a **clean shell** so your main install does not leak in (`unset` is enough — do not edit `~/.zshrc`):
 
 ```bash
-cd ~/Developer/scratch
-rm -rf EGSnrc_CLRP-test
-git clone https://github.com/clrp-code/EGSnrc_CLRP.git EGSnrc_CLRP-test
-cd EGSnrc_CLRP-test
+mkdir -p ~/scratch
+cd ~/scratch
+rm -rf eb
+git clone https://github.com/clrp-code/EGSnrc_CLRP.git eb
+cd eb
 git checkout feature/eb-setup
+git pull
 git submodule update --init --recursive
 
 unset EGS_CONFIG HEN_HOUSE EGS_HOME
-# use $HOME or unquoted ~ — quoted "~/..." is not expanded by the shell
-./eb-setup.sh install --egs-home "$HOME/Developer/scratch/egs_home_test/"
+./eb-setup.sh install --egs-home "$HOME/scratch/egs_home/"
 ```
+
+Before pushing `feature/eb-setup`, run `./scripts/test-eb-setup.sh` from the repo root.
 
 `install` runs `HEN_HOUSE/scripts/configure` as `./configure` from that directory (required by EGSnrc).
 

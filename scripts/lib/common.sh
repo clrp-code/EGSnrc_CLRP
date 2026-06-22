@@ -21,6 +21,10 @@ EGS_HOME_RESOLVED=""
 MY_MACHINE=""
 EB_SUBMODULE=""
 
+# Mortran embeds HEN_HOUSE/EGS_CONFIG paths in machine.macros (%C80). Long clone
+# paths make pegs4 fail with "FATAL STRING OR STATEMENT TOO LONG" (configure.log).
+EB_MAX_REPO_ROOT_LEN=42
+
 log()  { printf 'eb-setup: %s\n' "$*"; }
 warn() { printf 'eb-setup: warning: %s\n' "$*" >&2; }
 die()  { printf 'eb-setup: error: %s\n' "$*" >&2; exit "${2:-1}"; }
@@ -148,4 +152,20 @@ export_egs_env() {
 preflight_tools() {
     need_cmd bash; need_cmd make; need_cmd rsync
     (( FROM_TARBALL )) || need_cmd git
+}
+
+# Pegs4/mortran fails when absolute paths baked into machine.macros are too long.
+check_mortran_path_lengths() {
+    [[ -n "$REPO_ROOT" ]] || return 0
+    local n=${#REPO_ROOT}
+    if (( n > EB_MAX_REPO_ROOT_LEN )); then
+        warn "repo path is ${n} chars (limit ~${EB_MAX_REPO_ROOT_LEN} for Mortran):"
+        warn "  $REPO_ROOT"
+        warn "Use a shorter clone dir, e.g.:"
+        warn "  --install-dir \"\$HOME/scratch/eb\""
+        warn "  ln -s \"\$PWD\" \"\$HOME/scratch/eb\" && cd \"\$HOME/scratch/eb\""
+        if [[ "$EB_CMD" == "install" ]]; then
+            die "path too long for EGSnrc configure (see configure.log pegs4 / Mortran stop 12)"
+        fi
+    fi
 }
