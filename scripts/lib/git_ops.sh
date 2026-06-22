@@ -4,9 +4,18 @@ run_egsnrc_configure() {
     local script=configure
     (( NON_INTERACTIVE )) && script=configure.expect
     [[ -f "$cfg_dir/$script" ]] || die "not found: $cfg_dir/$script"
-    # EGSnrc configure sets my_dir=$(pwd)/$(dirname $0); run ./configure from scripts/.
-    run env -u HEN_HOUSE -u EGS_HOME -u EGS_CONFIG \
-        bash -c 'cd "$1" && exec ./"$2"' _ "$cfg_dir" "$script"
+    # configure sets my_dir=$(pwd)/$(dirname $0). Must invoke as ./configure
+    # from scripts/ in this shell — bash -c 'exec ./configure' leaves $0 absolute on macOS.
+    if (( DRY_RUN )); then
+        printf 'eb-setup: [dry-run] (cd %q && unset HEN_HOUSE EGS_HOME EGS_CONFIG && ./%s)\n' \
+            "$cfg_dir" "$script"
+        return 0
+    fi
+    (
+        unset HEN_HOUSE EGS_HOME EGS_CONFIG
+        cd "$cfg_dir" || exit 1
+        ./"$script"
+    )
 }
 
 cmd_update() {
