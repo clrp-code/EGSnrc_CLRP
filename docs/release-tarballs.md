@@ -64,43 +64,62 @@ Checklist:
 - [ ] `update --from-tarball` preserves `HEN_HOUSE/specs/*.conf`
 - [ ] `make test` passes after update
 - [ ] `check` shows **release tarball (no git)**
+- [ ] egs log banner shows `EGSnrc <version> for …` (from `release.mk` in tarball)
 
-## GitHub Actions (when ready)
+## Version banner (`EGS_RELEASE` / `GIT_HASH`)
 
-Workflow: `.github/workflows/release-tarball.yml` — runs on tag push `egs_brachy-*`.
+Git checkouts pick up release label and commit hash at **compile time** via make (`HEN_HOUSE/specs/all_common.spec`):
 
-### Keeping builds off the public “latest” download
+- **`EGS_RELEASE`** — nearest annotated git tag (`git describe --tags --abbrev=0`), with leading `v` or `egs_brachy-` stripped
+- **`GIT_HASH`** — short commit hash (empty if not in a git repo)
 
-There is no hidden “do not download” flag. Use release **visibility** instead:
+End-user tarballs have **no `.git`**, so `scripts/build-release-tarball.sh` writes `HEN_HOUSE/specs/release.mk` into the tarball:
 
-| Mechanism | Effect |
-|-----------|--------|
-| **Draft release** | Not listed publicly; only people with the URL see assets. Best for CI smoke tests. |
-| **Prerelease** | Visible but marked pre-release; GitHub won't treat it as Latest. Use for alpha/beta. |
-| **Tag naming** | e.g. `egs_brachy-1.0.0-alpha.1` — signals intent; pair with prerelease. |
-| **Manual workflow only** | Change trigger from `push: tags` to `workflow_dispatch` until you're ready for tag-driven releases. |
+```makefile
+EGS_RELEASE = -DEGS_RELEASE="\"1.0.0-alpha.1\""
+GIT_HASH = -DGIT_HASH="\"cab17a98\""
+```
+
+After install/configure/sync, recompiling shows in the egs log, e.g.:
+
+```
+EGSnrc 1.0.0-alpha.1 for arm-apple-darwin…
+```
+
+If `EGS_RELEASE` is unset, the banner is `EGSnrc for …` (no fake “version 4”).
+
+## GitHub Actions
+
+Workflow: `.github/workflows/release-tarball.yml`
+
+| Trigger | What happens |
+|---------|----------------|
+| **`workflow_dispatch`** (manual, version input) | Builds end-user tarball only; uploads to **Actions artifacts** — no GitHub Release |
+| **Tag push** `egs_brachy-*` | Builds end-user + source tarballs; publishes a **GitHub Release** |
+
+### Draft and prerelease (alpha/beta tags)
+
+When you push a tag whose name contains `alpha` or `beta` (e.g. `egs_brachy-1.0.0-alpha.1`), the workflow sets:
+
+```yaml
+draft: true       # if tag contains alpha or beta
+prerelease: true
+```
+
+| Setting | What users see |
+|---------|----------------|
+| **Draft** | Release hidden from the public Releases list; only people with the direct URL can download assets. Good for smoke-testing CI output before announcing. |
+| **Prerelease** | Release is visible but marked “Pre-release”; GitHub does **not** show it as **Latest**. Appropriate for alpha/beta builds users may try voluntarily. |
+| **Neither** (e.g. tag `egs_brachy-1.0.0`) | Normal public release; GitHub may mark it **Latest**. |
+
+To publish a tested alpha: open the draft release on GitHub → Edit → uncheck **Draft** (keep **Pre-release** checked until GA).
 
 Suggested rollout:
 
-1. **Now** — local `scripts/build-test-tarballs.sh` only.
-2. **CI dry run** — add `workflow_dispatch` job that uploads artifacts to the **Actions run** (not a Release); download from the workflow page.
-3. **Internal GH test** — push tag, workflow creates a **draft** + **prerelease** release.
-4. **Ship** — remove draft/prerelease; tag `egs_brachy-1.0.0` as full release.
-
-Example workflow addition (later):
-
-```yaml
-on:
-  workflow_dispatch:
-  push:
-    tags:
-      - 'egs_brachy-*'
-
-# in softprops/action-gh-release@v2:
-with:
-  draft: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
-  prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
-```
+1. **Local** — `./scripts/build-test-tarballs.sh`
+2. **CI dry run** — Actions → Release tarball → Run workflow → download artifact
+3. **Internal GH test** — `git tag egs_brachy-1.0.0-alpha.1 && git push clrp egs_brachy-1.0.0-alpha.1` → draft + prerelease release
+4. **Ship** — tag `egs_brachy-1.0.0` (no alpha/beta) → full public release
 
 ## End-user vs source tarball
 

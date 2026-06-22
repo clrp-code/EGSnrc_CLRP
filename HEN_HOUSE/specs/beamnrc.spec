@@ -131,9 +131,20 @@ else
     GIT_HASH = -DGIT_HASH="\"$(shell if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then git rev-parse --short=7 HEAD; fi)\""
 endif
 
+EGS_RELEASE =
+ifeq ($(OS),Windows_NT)
+    ifeq ($(USING_GIT),true)
+        EGS_RELEASE = -DEGS_RELEASE="\"$(shell cmd /C git describe --tags --abbrev=0 2>NUL | sed s/^v// | sed s/^egs_brachy-//)\""
+    endif
+else
+    EGS_RELEASE = -DEGS_RELEASE="\"$(shell if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then git describe --tags --abbrev=0 2>/dev/null | sed -e 's/^v//' -e 's/^egs_brachy-//'; fi)\""
+endif
+
 COMPILE_TIME =
 ifeq ($(OS),Windows_NT)
     COMPILE_TIME = -DCOMPILE_TIME="\"$(shell cmd /C date /T)$(shell cmd /C time /T)\""
 else
     COMPILE_TIME = -DCOMPILE_TIME="\"$(shell date -u +'%Y-%m-%d %H:%M:%S UTC')\""
 endif
+
+-include $(SPEC_DIR)release.mk

@@ -410,7 +410,11 @@ call egs_open_units(.true.);
 
 " Now print a summary of what happened "
 $egs_info('(a)',line);
-$egs_info('(a,a,t55,a,$)','EGSnrc version 4 for ',$CANONICAL_SYSTEM,' ');
+#ifdef EGS_RELEASE;
+$egs_info('(a,a,a,t55,a,$)','EGSnrc ',EGS_RELEASE,' for ',$CANONICAL_SYSTEM,' ');
+#else;
+$egs_info('(a,a,t55,a,$)','EGSnrc for ',$CANONICAL_SYSTEM,' ');
+#endif;
 call egs_get_fdate(dattim);
 $egs_info('(a,/,a)',dattim,line);
 

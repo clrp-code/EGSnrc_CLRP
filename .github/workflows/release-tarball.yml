@@ -1,6 +1,12 @@
 name: Release tarball
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.0-alpha.1) — builds artifacts only, no GitHub Release'
+        required: true
+        type: string
   push:
     tags:
       - 'egs_brachy-*'
@@ -16,20 +22,38 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build end-user tarball (no .git)
+      - name: Resolve version
+        id: ver
         run: |
-          VERSION="${GITHUB_REF_NAME#egs_brachy-}"
-          DIR="EGSnrc_CLRP-egs_brachy-${VERSION}"
-          mkdir -p "dist/${DIR}"
-          rsync -a --exclude='.git' --exclude='.github' ./ "dist/${DIR}/"
-          tar -czf "dist/EGSnrc_CLRP-egs_brachy-${VERSION}.tar.gz" -C dist "${DIR}"
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "is_tag_push=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#egs_brachy-}" >> "$GITHUB_OUTPUT"
+            echo "is_tag_push=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build end-user tarball (no .git)
+        run: ./scripts/build-release-tarball.sh "${{ steps.ver.outputs.version }}"
 
       - name: Build source tarball (with .git)
+        if: steps.ver.outputs.is_tag_push == 'true'
         run: |
-          VERSION="${GITHUB_REF_NAME#egs_brachy-}"
+          VERSION="${{ steps.ver.outputs.version }}"
           tar -czf "dist/EGSnrc_CLRP-egs_brachy-${VERSION}-src.tar.gz" --exclude='.github' .
 
-      - uses: softprops/action-gh-release@v2
+      - name: Upload workflow artifacts (manual dry run)
+        if: steps.ver.outputs.is_tag_push != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: EGSnrc_CLRP-egs_brachy-${{ steps.ver.outputs.version }}
+          path: dist/*.tar.gz
+
+      - name: Publish GitHub Release (tag push)
+        if: steps.ver.outputs.is_tag_push == 'true'
+        uses: softprops/action-gh-release@v2
         with:
           files: dist/*.tar.gz
           generate_release_notes: true
+          draft: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}

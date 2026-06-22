@@ -125,6 +125,21 @@ else
     bad "eb-env.sh should not reference clrp_bashrc_additions: $env_out"
 fi
 
+# 9) release tarball injects release.mk with EGS_RELEASE + GIT_HASH
+if [[ -f "$ROOT/HEN_HOUSE/user_codes/egs_brachy/egs_brachy/Makefile" ]]; then
+    if "$ROOT/scripts/build-release-tarball.sh" 9.9.9-test >/dev/null 2>&1 \
+        && grep -q 'EGS_RELEASE.*9.9.9-test' \
+            "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test/HEN_HOUSE/specs/release.mk" 2>/dev/null; then
+        ok 'build-release-tarball.sh writes release.mk'
+        rm -rf "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test" \
+               "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test.tar.gz"
+    else
+        bad 'build-release-tarball.sh release.mk injection'
+    fi
+else
+    ok 'release.mk test skipped (egs_brachy submodule not initialized)'
+fi
+
 echo "---"
 printf '%d passed, %d failed\n' "$pass" "$fail"
 (( fail == 0 ))
