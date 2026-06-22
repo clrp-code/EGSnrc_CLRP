@@ -19,15 +19,22 @@ export EGS_HOME=~/Developer/scratch/egs_home/
 
 Use `~/Developer/scratch` — never the main dev tree.
 
+Use a **clean shell** so your main install does not leak in (`unset` is enough — do not edit `~/.zshrc`):
+
 ```bash
 cd ~/Developer/scratch
 rm -rf EGSnrc_CLRP-test
 git clone https://github.com/clrp-code/EGSnrc_CLRP.git EGSnrc_CLRP-test
 cd EGSnrc_CLRP-test
-git checkout feature/eb-setup    # after this branch is pushed
+git checkout feature/eb-setup
 git submodule update --init --recursive
-./eb-setup.sh install
+
+unset EGS_CONFIG HEN_HOUSE EGS_HOME
+# use $HOME or unquoted ~ — quoted "~/..." is not expanded by the shell
+./eb-setup.sh install --egs-home "$HOME/Developer/scratch/egs_home_test/"
 ```
+
+`install` runs `HEN_HOUSE/scripts/configure` as `./configure` from that directory (required by EGSnrc).
 
 After `configure`, set `EGS_CONFIG` / `EGS_HOME` and run:
 

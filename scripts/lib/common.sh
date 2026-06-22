@@ -90,6 +90,18 @@ _config_value() {
     grep -E "^${key}[[:space:]]*=" "$file" 2>/dev/null | head -1 | sed -E "s/^${key}[[:space:]]*=[[:space:]]*//" | tr -d '\r'
 }
 
+# Expand leading ~ (bash does not expand ~ inside quoted --egs-home values).
+expand_user_path() {
+    local p="$1"
+    if [[ "$p" == "~" ]]; then
+        echo "$HOME"
+    elif [[ "$p" == "~/"* ]]; then
+        echo "${HOME}/${p:2}"
+    else
+        echo "$p"
+    fi
+}
+
 resolve_paths() {
     EB_ROOT="$(eb_setup_root)"
     REPO_ROOT="$EB_ROOT"
@@ -106,11 +118,11 @@ resolve_paths() {
         HEN_HOUSE="$EB_ROOT/HEN_HOUSE"
     fi
     if [[ -n "$EGS_HOME_OVERRIDE" ]]; then
-        EGS_HOME_RESOLVED="$EGS_HOME_OVERRIDE"
+        EGS_HOME_RESOLVED="$(expand_user_path "$EGS_HOME_OVERRIDE")"
     elif [[ -n "${EGS_HOME:-}" ]]; then
-        EGS_HOME_RESOLVED="$EGS_HOME"
+        EGS_HOME_RESOLVED="$(expand_user_path "$EGS_HOME")"
     elif [[ -f "$HOME/.egsnrcrc" ]]; then
-        EGS_HOME_RESOLVED="$(grep 'EGS_HOME' "$HOME/.egsnrcrc" | head -1 | sed -E 's/.*EGS_HOME[^=]*=[[:space:]]*//; s/[[:space:]]*$//')"
+        EGS_HOME_RESOLVED="$(expand_user_path "$(grep 'EGS_HOME' "$HOME/.egsnrcrc" | head -1 | sed -E 's/.*EGS_HOME[^=]*=[[:space:]]*//; s/[[:space:]]*$//')")"
     fi
     if [[ -n "$HEN_HOUSE" ]]; then EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"; fi
     normalize_egs_home

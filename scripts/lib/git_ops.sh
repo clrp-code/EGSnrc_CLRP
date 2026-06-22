@@ -1,4 +1,14 @@
 # shellcheck shell=bash
+run_egsnrc_configure() {
+    local cfg_dir="${HEN_HOUSE%/}/scripts"
+    local script=configure
+    (( NON_INTERACTIVE )) && script=configure.expect
+    [[ -f "$cfg_dir/$script" ]] || die "not found: $cfg_dir/$script"
+    # EGSnrc configure sets my_dir=$(pwd)/$(dirname $0); run ./configure from scripts/.
+    run env -u HEN_HOUSE -u EGS_HOME -u EGS_CONFIG \
+        bash -c 'cd "$1" && exec ./"$2"' _ "$cfg_dir" "$script"
+}
+
 cmd_update() {
     resolve_paths; preflight_tools
     (( FROM_TARBALL )) && die "update requires git checkout (not --from-tarball)"
@@ -27,23 +37,27 @@ cmd_install() {
     resolve_paths; preflight_tools
     if (( ! FROM_TARBALL )); then
         if [[ ! -d "$REPO_ROOT/.git" ]]; then
-            local dest="${INSTALL_DIR:-$HOME/Developer/scratch/EGSnrc_CLRP}"
+            local dest
+            dest="$(expand_user_path "${INSTALL_DIR:-$HOME/Developer/scratch/EGSnrc_CLRP}")"
             log "cloning CLRP fork to $dest..."
             run git clone https://github.com/clrp-code/EGSnrc_CLRP.git "$dest"
             REPO_ROOT="$dest"; HEN_HOUSE="$dest/HEN_HOUSE"; EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"
         fi
-        log "checking out egs_brachy branch and submodule..."
-        run git -C "$REPO_ROOT" checkout egs_brachy
+        local cur_branch="$(_git_branch "$REPO_ROOT")"
+        if [[ "$cur_branch" == "egs_brachy" ]]; then
+            log "on egs_brachy branch"
+        elif [[ -f "$REPO_ROOT/eb-setup.sh" ]]; then
+            warn "staying on branch $cur_branch (eb-setup testing branch)"
+        else
+            log "checking out egs_brachy branch..."
+            run git -C "$REPO_ROOT" checkout egs_brachy
+        fi
+        log "initializing egs_brachy submodule..."
         run git -C "$REPO_ROOT" submodule update --init --recursive
     fi
     if [[ -z "$EGS_CONFIG_RESOLVED" ]]; then
         log "configure EGSnrc (interactive)..."
-        warn "unset HEN_HOUSE EGS_HOME EGS_CONFIG if switching installs"
-        if (( NON_INTERACTIVE )); then
-            run "$HEN_HOUSE/scripts/configure.expect"
-        else
-            run "$HEN_HOUSE/scripts/configure"
-        fi
+        run_egsnrc_configure
         die "after configure, set EGS_CONFIG/EGS_HOME and re-run: eb-setup.sh sync"
     fi
     cmd_sync
