@@ -1,12 +1,18 @@
 # shellcheck shell=bash
+rsync_preview_legend() {
+    echo "(rsync preview — >f..t.... = file will be copied/updated from submodule → EGS_HOME)"
+}
+
 confirm_overwrites() {
-    local src dst diff
+    local src dst diff n
     src="$(eb_source_path)/"; dst="$(eb_dest_path)/"
     [[ -d "$dst" ]] || return 0
     diff="$(rsync -ani --exclude='eb_tests/**/results/' "$src" "$dst" 2>/dev/null | grep -E '^[<>*]' || true)"
     [[ -z "$diff" ]] && return 0
-    echo "Source files that would change:"
-    echo "$diff" | head -30
+    n=$(echo "$diff" | wc -l | tr -d ' ')
+    rsync_preview_legend
+    echo "$n file(s) would change (showing up to 30):"
+    echo "$diff" | head -30 | sed -E 's/^>[fh][.cpstoguax]*[[:space:]]+/  → /'
     if (( EB_YES )); then return 0; fi
     read -r -p "Proceed with sync? [y/N] " ans
     [[ "$ans" == [yY] || "$ans" == [yY][eE][sS] ]] || die "sync cancelled"

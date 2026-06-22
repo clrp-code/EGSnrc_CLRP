@@ -55,6 +55,22 @@ else
     bad 'expand_user_path'
 fi
 
+# 5) pickup after configure (uses scratch install if present)
+if [[ -f "$HOME/scratch/eb/HEN_HOUSE/specs/test.conf" ]]; then
+    pickup_out=$(bash -c '
+        source "'"$ROOT"'/scripts/lib/common.sh"
+        HEN_HOUSE="'"$HOME"'/scratch/eb/HEN_HOUSE"
+        REPO_ROOT="'"$HOME"'/scratch/eb"
+        pickup_egsnrc_env_after_configure
+        echo "$EGS_CONFIG_RESOLVED|$EGS_HOME_RESOLVED"
+    ' 2>&1)
+    if echo "$pickup_out" | grep -q 'specs/test.conf' && echo "$pickup_out" | grep -q 'egs_home'; then
+        ok 'pickup_egsnrc_env_after_configure finds test.conf + egs_home'
+    else
+        bad "pickup failed: $pickup_out"
+    fi
+fi
+
 echo "---"
 printf '%d passed, %d failed\n' "$pass" "$fail"
 (( fail == 0 ))

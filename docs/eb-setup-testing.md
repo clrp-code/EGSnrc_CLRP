@@ -41,10 +41,10 @@ Before pushing `feature/eb-setup`, run `./scripts/test-eb-setup.sh` from the rep
 
 `install` runs `HEN_HOUSE/scripts/configure` as `./configure` from that directory (required by EGSnrc).
 
-After `configure`, set `EGS_CONFIG` / `EGS_HOME` and run:
+After `configure`, `install` auto-detects `EGS_CONFIG` / `EGS_HOME` and continues to `sync`. Add the exports from `./eb-setup.sh env` to your shell profile for new terminals.
 
 ```bash
-./eb-setup.sh sync
+./eb-setup.sh sync    # only needed if you skipped install or changed the submodule
 ./eb-setup.sh check
 ```
 

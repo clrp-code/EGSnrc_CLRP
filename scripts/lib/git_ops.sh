@@ -11,11 +11,13 @@ run_egsnrc_configure() {
             "$cfg_dir" "$script"
         return 0
     fi
+    local cfg_status=0
     (
         unset HEN_HOUSE EGS_HOME EGS_CONFIG
         cd "$cfg_dir" || exit 1
         ./"$script"
-    )
+    ) || cfg_status=$?
+    (( cfg_status == 0 )) || die "EGSnrc configure failed (see HEN_HOUSE/log/configure*.log)"
 }
 
 cmd_update() {
@@ -67,10 +69,13 @@ cmd_install() {
     if [[ -z "$EGS_CONFIG_RESOLVED" ]]; then
         log "configure EGSnrc (interactive)..."
         run_egsnrc_configure
-        die "after configure, set EGS_CONFIG/EGS_HOME and re-run: eb-setup.sh sync"
+        pickup_egsnrc_env_after_configure
+        export_egs_env
+        log "configure complete — continuing with sync"
     fi
     cmd_sync
     cmd_env
+    log "install complete (add exports from 'eb-setup.sh env' to your shell profile)"
 }
 
 cmd_env() {

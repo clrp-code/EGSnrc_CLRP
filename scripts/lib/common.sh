@@ -154,6 +154,42 @@ preflight_tools() {
     (( FROM_TARBALL )) || need_cmd git
 }
 
+# configure/finalize run in a subshell — pick up paths they created for this session.
+pickup_egsnrc_env_after_configure() {
+    local spec_dir="${HEN_HOUSE%/}/specs" f m newest="" newest_m=0
+    for f in "$spec_dir"/*.conf; do
+        [[ -f "$f" ]] || continue
+        grep -q '^my_machine[[:space:]]*=' "$f" || continue
+        m=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f")
+        if (( m > newest_m )); then newest_m=$m; newest=$f; fi
+    done
+    [[ -n "$newest" ]] || die "no EGSnrc config found in $spec_dir after configure"
+    EGS_CONFIG_RESOLVED="$newest"
+    MY_MACHINE="$(_config_value my_machine "$newest")"
+
+    local eh="" log log_dir="${HEN_HOUSE%/}/log"
+    for log in "$log_dir"/configure-*-"${USER}.log"; do
+        [[ -f "$log" ]] || continue
+        eh=$(grep -E '^EGS_HOME:[[:space:]]+' "$log" | head -1 \
+            | sed -E 's/^EGS_HOME:[[:space:]]+//;s/[[:space:]]+$//')
+        [[ -n "$eh" ]] && break
+        eh=$(grep -E 'EGS_HOME[[:space:]]*=' "$log" | tail -1 \
+            | sed -E 's/.*EGS_HOME[[:space:]]*=[[:space:]]*//;s/[[:space:]]+$//')
+        [[ -n "$eh" ]] && break
+    done
+    if [[ -n "$eh" ]]; then
+        EGS_HOME_RESOLVED="$(expand_user_path "$eh")"
+    elif [[ -n "$EGS_HOME_OVERRIDE" ]]; then
+        EGS_HOME_RESOLVED="$(expand_user_path "$EGS_HOME_OVERRIDE")"
+    elif [[ -d "${REPO_ROOT}/egs_home" ]]; then
+        EGS_HOME_RESOLVED="${REPO_ROOT}/egs_home/"
+    fi
+    normalize_egs_home
+    [[ -n "$EGS_HOME_RESOLVED" ]] || die "could not determine EGS_HOME - use --egs-home PATH"
+    log "detected EGS_CONFIG=$EGS_CONFIG_RESOLVED"
+    log "detected EGS_HOME=$EGS_HOME_RESOLVED"
+}
+
 # Pegs4/mortran fails when absolute paths baked into machine.macros are too long.
 check_mortran_path_lengths() {
     [[ -n "$REPO_ROOT" ]] || return 0
