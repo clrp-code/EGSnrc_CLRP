@@ -1,0 +1,139 @@
+# shellcheck shell=bash
+# Shared helpers for eb-setup.sh
+
+EB_SETUP_VERSION="0.1.0-dev"
+
+EB_CMD=""
+FROM_TARBALL=0
+INSTALL_DIR=""
+EGS_HOME_OVERRIDE=""
+NON_INTERACTIVE=0
+EB_YES=0
+DRY_RUN=0
+STRICT=0
+STASH=0
+
+EB_ROOT=""
+REPO_ROOT=""
+HEN_HOUSE=""
+EGS_CONFIG_RESOLVED=""
+EGS_HOME_RESOLVED=""
+MY_MACHINE=""
+EB_SUBMODULE=""
+
+log()  { printf 'eb-setup: %s\n' "$*"; }
+warn() { printf 'eb-setup: warning: %s\n' "$*" >&2; }
+die()  { printf 'eb-setup: error: %s\n' "$*" >&2; exit "${2:-1}"; }
+
+need_cmd() {
+    command -v "$1" >/dev/null 2>&1 || die "required command not found: $1"
+}
+
+run() {
+    if (( DRY_RUN )); then
+        printf 'eb-setup: [dry-run] '
+        printf '%q ' "$@"
+        printf '\n'
+        return 0
+    fi
+    "$@"
+}
+
+eb_setup_root() {
+    local src="${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}"
+    while [[ -L "$src" ]]; do src="$(readlink "$src")"; done
+    cd "$(dirname "$src")/../.." && pwd
+}
+
+parse_args() {
+    EB_CMD="${1:-check}"
+    shift || true
+    if [[ "$EB_CMD" == "-h" || "$EB_CMD" == "--help" || "$EB_CMD" == "help" ]]; then
+        EB_CMD="help"
+        return 0
+    fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --from-tarball)   FROM_TARBALL=1; shift ;;
+            --install-dir)    INSTALL_DIR="${2:?}"; shift 2 ;;
+            --egs-home)       EGS_HOME_OVERRIDE="${2:?}"; shift 2 ;;
+            --non-interactive) NON_INTERACTIVE=1; shift ;;
+            --yes)            EB_YES=1; shift ;;
+            --dry-run)        DRY_RUN=1; shift ;;
+            --strict)         STRICT=1; shift ;;
+            --stash)          STASH=1; shift ;;
+            -h|--help)        EB_CMD="help"; shift ;;
+            *) die "unknown option: $1" ;;
+        esac
+    done
+    if (( STRICT && STASH )); then die "--strict and --stash are mutually exclusive"; fi
+}
+
+usage() {
+    cat <<EOF
+eb-setup ${EB_SETUP_VERSION} — install, update, sync, and diagnose egs_brachy
+
+Usage: eb-setup.sh <command> [options]
+
+Commands: check | install | update | sync | env | help
+
+Options: --from-tarball --install-dir PATH --egs-home PATH
+         --non-interactive --yes --dry-run --strict --stash
+
+Testing: branch feature/eb-setup; scratch ~/Developer/scratch
+Docs:    docs/eb-setup-testing.md  docs/branch-layout.md
+EOF
+}
+
+_config_value() {
+    local key="$1" file="$2"
+    grep -E "^${key}[[:space:]]*=" "$file" 2>/dev/null | head -1 | sed -E "s/^${key}[[:space:]]*=[[:space:]]*//" | tr -d '\r'
+}
+
+resolve_paths() {
+    EB_ROOT="$(eb_setup_root)"
+    REPO_ROOT="$EB_ROOT"
+    if [[ -n "${EGS_CONFIG:-}" && -f "${EGS_CONFIG}" ]]; then
+        EGS_CONFIG_RESOLVED="$EGS_CONFIG"
+        local hh="$(_config_value HEN_HOUSE "$EGS_CONFIG")"
+        hh="${hh%/}"
+        if [[ -n "$hh" && -d "$hh" ]]; then
+            HEN_HOUSE="$hh"
+            REPO_ROOT="$(cd "$HEN_HOUSE/.." && pwd)"
+        fi
+        MY_MACHINE="$(_config_value my_machine "$EGS_CONFIG")"
+    elif [[ -d "$EB_ROOT/HEN_HOUSE" ]]; then
+        HEN_HOUSE="$EB_ROOT/HEN_HOUSE"
+    fi
+    if [[ -n "$EGS_HOME_OVERRIDE" ]]; then
+        EGS_HOME_RESOLVED="$EGS_HOME_OVERRIDE"
+    elif [[ -n "${EGS_HOME:-}" ]]; then
+        EGS_HOME_RESOLVED="$EGS_HOME"
+    elif [[ -f "$HOME/.egsnrcrc" ]]; then
+        EGS_HOME_RESOLVED="$(grep 'EGS_HOME' "$HOME/.egsnrcrc" | head -1 | sed -E 's/.*EGS_HOME[^=]*=[[:space:]]*//; s/[[:space:]]*$//')"
+    fi
+    if [[ -n "$HEN_HOUSE" ]]; then EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"; fi
+    normalize_egs_home
+}
+
+# EGSnrc makefiles use $(EGS_HOME)$(BIN_SUBDIR) — EGS_HOME must end with /
+normalize_egs_home() {
+    [[ -n "$EGS_HOME_RESOLVED" ]] || return 0
+    EGS_HOME_RESOLVED="${EGS_HOME_RESOLVED%/}/"
+}
+
+eb_source_path() { echo "${HEN_HOUSE}/user_codes/egs_brachy/egs_brachy"; }
+eb_dest_path()    { echo "${EGS_HOME_RESOLVED}egs_brachy"; }
+eb_executable()   { echo "${EGS_HOME_RESOLVED}bin/${MY_MACHINE}/egs_brachy"; }
+
+export_egs_env() {
+    normalize_egs_home
+    [[ -n "$EGS_CONFIG_RESOLVED" ]] && export EGS_CONFIG="$EGS_CONFIG_RESOLVED"
+    [[ -n "$EGS_HOME_RESOLVED" ]]    && export EGS_HOME="$EGS_HOME_RESOLVED"
+    [[ -n "$HEN_HOUSE" ]]            && export HEN_HOUSE="${HEN_HOUSE%/}/"
+}
+
+preflight_tools() {
+    need_cmd bash; need_cmd make; need_cmd rsync
+    (( FROM_TARBALL )) || need_cmd git
+}

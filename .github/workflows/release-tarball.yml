@@ -1,0 +1,35 @@
+name: Release tarball
+
+on:
+  push:
+    tags:
+      - 'egs_brachy-*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build end-user tarball (no .git)
+        run: |
+          VERSION="${GITHUB_REF_NAME#egs_brachy-}"
+          DIR="EGSnrc_CLRP-egs_brachy-${VERSION}"
+          mkdir -p "dist/${DIR}"
+          rsync -a --exclude='.git' --exclude='.github' ./ "dist/${DIR}/"
+          tar -czf "dist/EGSnrc_CLRP-egs_brachy-${VERSION}.tar.gz" -C dist "${DIR}"
+
+      - name: Build source tarball (with .git)
+        run: |
+          VERSION="${GITHUB_REF_NAME#egs_brachy-}"
+          tar -czf "dist/EGSnrc_CLRP-egs_brachy-${VERSION}-src.tar.gz" --exclude='.github' .
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.tar.gz
+          generate_release_notes: true
