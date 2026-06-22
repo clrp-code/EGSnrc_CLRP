@@ -8,6 +8,7 @@ source "$ROOT/scripts/lib/common.sh"
 source "$ROOT/scripts/lib/detect.sh"
 source "$ROOT/scripts/lib/dirty.sh"
 source "$ROOT/scripts/lib/sync.sh"
+source "$ROOT/scripts/lib/tarball.sh"
 source "$ROOT/scripts/lib/git_ops.sh"
 
 main() {

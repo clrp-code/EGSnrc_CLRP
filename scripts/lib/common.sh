@@ -6,6 +6,9 @@ EB_SETUP_VERSION="0.1.0-dev"
 EB_CMD=""
 FROM_TARBALL=0
 INSTALL_DIR=""
+TARBALL_PATH=""
+TARBALL_TMPDIR=""
+TARBALL_PAYLOAD_ROOT=""
 EGS_HOME_OVERRIDE=""
 NON_INTERACTIVE=0
 EB_YES=0
@@ -59,6 +62,7 @@ parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --from-tarball)   FROM_TARBALL=1; shift ;;
+            --tarball)        TARBALL_PATH="${2:?}"; shift 2 ;;
             --install-dir)    INSTALL_DIR="${2:?}"; shift 2 ;;
             --egs-home)       EGS_HOME_OVERRIDE="${2:?}"; shift 2 ;;
             --non-interactive) NON_INTERACTIVE=1; shift ;;
@@ -81,8 +85,11 @@ Usage: eb-setup.sh <command> [options]
 
 Commands: check | install | update | sync | env | help
 
-Options: --from-tarball --install-dir PATH --egs-home PATH
+Options: --from-tarball --tarball PATH --install-dir PATH --egs-home PATH
          --non-interactive --yes --dry-run --strict --stash
+
+Tarball:  update --from-tarball --tarball release.tar.gz
+          install --from-tarball --tarball release.tar.gz --install-dir PATH
 
 Testing: branch feature/eb-setup; scratch ~/Developer/scratch
 Docs:    docs/eb-setup-testing.md  docs/branch-layout.md

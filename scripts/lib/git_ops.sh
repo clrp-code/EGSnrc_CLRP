@@ -22,7 +22,10 @@ run_egsnrc_configure() {
 
 cmd_update() {
     resolve_paths; preflight_tools
-    (( FROM_TARBALL )) && die "update requires git checkout (not --from-tarball)"
+    if (( FROM_TARBALL )); then
+        cmd_update_from_tarball
+        return
+    fi
     [[ -n "$REPO_ROOT" ]] || die "cannot find EGSnrc repo root"
     if (( STASH )); then stash_git_repos; fi
     enforce_tier1_git_policy
@@ -47,7 +50,16 @@ cmd_update() {
 
 cmd_install() {
     resolve_paths; preflight_tools; check_mortran_path_lengths
-    if (( ! FROM_TARBALL )); then
+    if (( FROM_TARBALL )); then
+        tarball_require_path
+        local dest
+        dest="$(expand_user_path "${INSTALL_DIR:-$HOME/scratch/eb}")"
+        if [[ -f "$dest/eb-setup.sh" || -d "$dest/HEN_HOUSE" ]]; then
+            die "install dir already exists: $dest (use update --from-tarball)"
+        fi
+        tarball_extract_install_dir "$TARBALL_PATH" "$dest"
+        trap tarball_cleanup_temp EXIT
+    else
         if [[ ! -d "$REPO_ROOT/.git" ]]; then
             local dest
             dest="$(expand_user_path "${INSTALL_DIR:-$HOME/scratch/eb}")"

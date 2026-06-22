@@ -44,6 +44,9 @@ print_check_report() {
             echo "  egs_brachy sub @ $(_git_branch "$EB_SUBMODULE")"
             git -C "$EB_SUBMODULE" status --short | sed 's/^/    /' || echo "    (clean)"
         fi; echo
+    elif [[ -n "$REPO_ROOT" && -d "$HEN_HOUSE" ]]; then
+        echo "Install type:   release tarball (no git)"
+        echo; 
     fi
     echo "EGS_HOME (Tier 2):"
     if [[ -n "$EGS_HOME_RESOLVED" && -d "$(eb_dest_path)" ]]; then
@@ -57,6 +60,6 @@ print_check_report() {
         A|C|D) echo "Next: eb-setup.sh install" ;;
         B) echo "Next: fresh install to ~/Developer/scratch (see docs/eb-setup-testing.md)" ;;
         E) echo "Next: eb-setup.sh sync" ;;
-        F) echo "Next: eb-setup.sh update"; echo "       cd \"$(eb_dest_path)\" && make test" ;;
+        F) echo "Next: eb-setup.sh update"; echo "       (tarball: update --from-tarball --tarball PATH)"; echo "       cd \"$(eb_dest_path)\" && make test" ;;
     esac
 }
