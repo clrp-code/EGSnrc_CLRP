@@ -60,6 +60,6 @@ print_check_report() {
         A|C|D) echo "Next: eb-setup.sh install" ;;
         B) echo "Next: fresh install to ~/Developer/scratch (see docs/eb-setup-testing.md)" ;;
         E) echo "Next: eb-setup.sh sync" ;;
-        F) echo "Next: eb-setup.sh update"; echo "       (tarball: update --from-tarball --tarball PATH)"; echo "       cd \"$(eb_dest_path)\" && make test" ;;
+        F) echo "Next: eb-setup.sh update"; echo "       (tarball: update --from-tarball PATH)"; echo "       cd \"$(eb_dest_path)\" && make test" ;;
     esac
 }

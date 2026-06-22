@@ -75,13 +75,13 @@ Release assets: `EGSnrc_CLRP-egs_brachy-VERSION.tar.gz` (from tag `egs_brachy-VE
 
 ```bash
 # Fresh install from release (no git):
-./eb-setup.sh install --from-tarball --tarball ~/Downloads/EGSnrc_CLRP-egs_brachy-*.tar.gz \
+./eb-setup.sh install --from-tarball ~/Downloads/EGSnrc_CLRP-egs_brachy-*.tar.gz \
   --install-dir ~/egs_brachy-release
 
 # Update existing tarball install (EGS_CONFIG/EGS_HOME must be set):
 cd ~/egs_brachy-release
 source ./eb-env.sh    # or export EGS_CONFIG / EGS_HOME
-./eb-setup.sh update --from-tarball --tarball ~/Downloads/EGSnrc_CLRP-egs_brachy-NEW.tar.gz
+./eb-setup.sh update --from-tarball ~/Downloads/EGSnrc_CLRP-egs_brachy-NEW.tar.gz
 ```
 
 Preserves: `HEN_HOUSE/specs/*.conf`, `lib/`, `bin/`, `log/`, `egs++/dso/`, and all of `$EGS_HOME`.

@@ -61,8 +61,17 @@ parse_args() {
     fi
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --from-tarball)   FROM_TARBALL=1; shift ;;
-            --tarball)        TARBALL_PATH="${2:?}"; shift 2 ;;
+            --from-tarball)
+                [[ -n "${2:-}" && "$2" != -* ]] || die "--from-tarball requires PATH to release .tar.gz"
+                FROM_TARBALL=1
+                TARBALL_PATH="$2"
+                shift 2
+                ;;
+            --tarball)
+                FROM_TARBALL=1
+                TARBALL_PATH="${2:?}"
+                shift 2
+                ;;
             --install-dir)    INSTALL_DIR="${2:?}"; shift 2 ;;
             --egs-home)       EGS_HOME_OVERRIDE="${2:?}"; shift 2 ;;
             --non-interactive) NON_INTERACTIVE=1; shift ;;
@@ -85,11 +94,12 @@ Usage: eb-setup.sh <command> [options]
 
 Commands: check | install | update | sync | env | help
 
-Options: --from-tarball --tarball PATH --install-dir PATH --egs-home PATH
+Options: --from-tarball PATH --install-dir PATH --egs-home PATH
          --non-interactive --yes --dry-run --strict --stash
 
-Tarball:  update --from-tarball --tarball release.tar.gz
-          install --from-tarball --tarball release.tar.gz --install-dir PATH
+Tarball:  update --from-tarball release.tar.gz
+          install --from-tarball release.tar.gz --install-dir PATH
+          (--tarball PATH is an alias for --from-tarball PATH)
 
 Testing: branch feature/eb-setup; scratch ~/Developer/scratch
 Docs:    docs/eb-setup-testing.md  docs/branch-layout.md

@@ -2,7 +2,7 @@
 # Release tarball install/update (no git). See .github/workflows/release-tarball.yml.
 
 tarball_require_path() {
-    [[ -n "$TARBALL_PATH" ]] || die "--tarball PATH is required with --from-tarball"
+    [[ -n "$TARBALL_PATH" ]] || die "--from-tarball PATH is required (path to release .tar.gz)"
     TARBALL_PATH="$(expand_user_path "$TARBALL_PATH")"
     [[ -f "$TARBALL_PATH" ]] || die "tarball not found: $TARBALL_PATH"
     case "$TARBALL_PATH" in

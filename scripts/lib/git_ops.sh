@@ -55,7 +55,7 @@ cmd_install() {
         local dest
         dest="$(expand_user_path "${INSTALL_DIR:-$HOME/scratch/eb}")"
         if [[ -f "$dest/eb-setup.sh" || -d "$dest/HEN_HOUSE" ]]; then
-            die "install dir already exists: $dest (use update --from-tarball)"
+            die "install dir already exists: $dest (use: update --from-tarball PATH)"
         fi
         tarball_extract_install_dir "$TARBALL_PATH" "$dest"
         trap tarball_cleanup_temp EXIT
