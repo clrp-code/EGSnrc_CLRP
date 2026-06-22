@@ -69,19 +69,24 @@ echo test > $EGS_HOME/egs_brachy/my_test.egsinp
 ./eb-setup.sh update          # should proceed
 ```
 
-## Tarball update (not tested here — walk through manually)
+## Tarball testing
 
-Release assets: `EGSnrc_CLRP-egs_brachy-VERSION.tar.gz` (from tag `egs_brachy-VERSION`).
+See **[release-tarballs.md](release-tarballs.md)** for building local sample tarballs and the full install/update walkthrough.
+
+Quick start:
+
+```bash
+./scripts/build-test-tarballs.sh    # dist/EGSnrc_CLRP-egs_brachy-1.0.0-alpha.{1,2}.tar.gz
+```
 
 ```bash
 # Fresh install from release (no git):
-./eb-setup.sh install --from-tarball ~/Downloads/EGSnrc_CLRP-egs_brachy-*.tar.gz \
-  --install-dir ~/egs_brachy-release
+./eb-setup.sh install --from-tarball ~/path/to/dist/EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1.tar.gz \
+  --install-dir ~/scratch/tarball-test/eb-release
 
 # Update existing tarball install (EGS_CONFIG/EGS_HOME must be set):
-cd ~/egs_brachy-release
-source ./eb-env.sh    # or export EGS_CONFIG / EGS_HOME
-./eb-setup.sh update --from-tarball ~/Downloads/EGSnrc_CLRP-egs_brachy-NEW.tar.gz
+cd ~/scratch/tarball-test/eb-release && source ./eb-env.sh
+./eb-setup.sh update --from-tarball ~/path/to/dist/EGSnrc_CLRP-egs_brachy-1.0.0-alpha.2.tar.gz
 ```
 
-Preserves: `HEN_HOUSE/specs/*.conf`, `lib/`, `bin/`, `log/`, `egs++/dso/`, and all of `$EGS_HOME`.
+Preserves on update: `HEN_HOUSE/specs/*.conf`, `lib/`, `bin/`, `log/`, `egs++/dso/`, and all of `$EGS_HOME`.

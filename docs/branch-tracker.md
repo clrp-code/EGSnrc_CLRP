@@ -21,7 +21,7 @@ Last updated: 2026-06-22
 - [x] Split branch from `egs_brachy` (no run-anywhere)
 - [ ] Commit `eb-setup.sh` bundle
 - [x] Scratch install + `make test` end-to-end
-- [ ] **Tarball** install/update walk-through (manual)
+- [x] **Tarball** install/update walk-through — see [release-tarballs.md](release-tarballs.md)
 - [ ] Merge `feature/eb-setup` → `egs_brachy`
 
 ## Run-anywhere (use `dev`)

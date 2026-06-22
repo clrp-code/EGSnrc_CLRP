@@ -1,5 +1,6 @@
 ### ignore EGSnrc configuration generated files
 eb-env.sh
+dist/
 egs_home/
 egsnrc_mp/
 mortjob.mortran

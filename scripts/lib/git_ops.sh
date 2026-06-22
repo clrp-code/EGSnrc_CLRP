@@ -14,6 +14,10 @@ run_egsnrc_configure() {
     local cfg_status=0
     (
         unset HEN_HOUSE EGS_HOME EGS_CONFIG
+        # --egs-home becomes finalize's default suggestion (still overridable interactively).
+        if [[ -n "$EGS_HOME_OVERRIDE" ]]; then
+            export EGS_HOME="$(expand_user_path "$EGS_HOME_OVERRIDE")"
+        fi
         cd "$cfg_dir" || exit 1
         ./"$script"
     ) || cfg_status=$?

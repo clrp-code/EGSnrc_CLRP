@@ -123,6 +123,22 @@ expand_user_path() {
     fi
 }
 
+# Read EGS_HOME recorded by configure/finalize (authoritative after install configure).
+_egs_home_from_configure_logs() {
+    local eh="" log log_dir="${HEN_HOUSE%/}/log"
+    [[ -d "$log_dir" ]] || return 0
+    for log in "$log_dir"/configure-*-"${USER}.log" "$log_dir"/configure-*.log; do
+        [[ -f "$log" ]] || continue
+        eh=$(grep -E '^EGS_HOME:[[:space:]]+' "$log" | head -1 \
+            | sed -E 's/^EGS_HOME:[[:space:]]+//;s/[[:space:]]+$//')
+        [[ -n "$eh" ]] && break
+        eh=$(grep -E 'EGS_HOME[[:space:]]*=' "$log" | tail -1 \
+            | sed -E 's/.*EGS_HOME[[:space:]]*=[[:space:]]*//;s/[[:space:]]+$//')
+        [[ -n "$eh" ]] && break
+    done
+    [[ -n "$eh" ]] && expand_user_path "$eh"
+}
+
 resolve_paths() {
     EB_ROOT="$(eb_setup_root)"
     REPO_ROOT="$EB_ROOT"
@@ -138,14 +154,23 @@ resolve_paths() {
     elif [[ -d "$EB_ROOT/HEN_HOUSE" ]]; then
         HEN_HOUSE="$EB_ROOT/HEN_HOUSE"
     fi
-    if [[ -n "$EGS_HOME_OVERRIDE" ]]; then
+    if [[ -n "$HEN_HOUSE" ]]; then EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"; fi
+    # After configure, finalize's log wins over --egs-home (user may have accepted a different path).
+    local eh=""
+    if [[ -n "$HEN_HOUSE" ]]; then
+        eh="$(_egs_home_from_configure_logs)"
+    fi
+    if [[ -n "$eh" ]]; then
+        EGS_HOME_RESOLVED="$eh"
+    elif [[ -n "$EGS_HOME_OVERRIDE" ]]; then
         EGS_HOME_RESOLVED="$(expand_user_path "$EGS_HOME_OVERRIDE")"
     elif [[ -n "${EGS_HOME:-}" ]]; then
         EGS_HOME_RESOLVED="$(expand_user_path "$EGS_HOME")"
     elif [[ -f "$HOME/.egsnrcrc" ]]; then
         EGS_HOME_RESOLVED="$(expand_user_path "$(grep 'EGS_HOME' "$HOME/.egsnrcrc" | head -1 | sed -E 's/.*EGS_HOME[^=]*=[[:space:]]*//; s/[[:space:]]*$//')")"
+    elif [[ -d "${REPO_ROOT}/egs_home" ]]; then
+        EGS_HOME_RESOLVED="${REPO_ROOT}/egs_home/"
     fi
-    if [[ -n "$HEN_HOUSE" ]]; then EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"; fi
     normalize_egs_home
 }
 
@@ -185,7 +210,6 @@ emit_shell_setup() {
 export EGS_CONFIG="$EGS_CONFIG_RESOLVED"
 export EGS_HOME="$EGS_HOME_RESOLVED"
 source "${HEN_HOUSE%/}/scripts/egsnrc_bashrc_additions"
-source "${HEN_HOUSE%/}/scripts/clrp_bashrc_additions"
 EOF
 
     echo
@@ -230,18 +254,10 @@ pickup_egsnrc_env_after_configure() {
     EGS_CONFIG_RESOLVED="$newest"
     MY_MACHINE="$(_config_value my_machine "$newest")"
 
-    local eh="" log log_dir="${HEN_HOUSE%/}/log"
-    for log in "$log_dir"/configure-*-"${USER}.log"; do
-        [[ -f "$log" ]] || continue
-        eh=$(grep -E '^EGS_HOME:[[:space:]]+' "$log" | head -1 \
-            | sed -E 's/^EGS_HOME:[[:space:]]+//;s/[[:space:]]+$//')
-        [[ -n "$eh" ]] && break
-        eh=$(grep -E 'EGS_HOME[[:space:]]*=' "$log" | tail -1 \
-            | sed -E 's/.*EGS_HOME[[:space:]]*=[[:space:]]*//;s/[[:space:]]+$//')
-        [[ -n "$eh" ]] && break
-    done
+    local eh=""
+    eh="$(_egs_home_from_configure_logs)"
     if [[ -n "$eh" ]]; then
-        EGS_HOME_RESOLVED="$(expand_user_path "$eh")"
+        EGS_HOME_RESOLVED="$eh"
     elif [[ -n "$EGS_HOME_OVERRIDE" ]]; then
         EGS_HOME_RESOLVED="$(expand_user_path "$EGS_HOME_OVERRIDE")"
     elif [[ -d "${REPO_ROOT}/egs_home" ]]; then

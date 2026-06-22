@@ -55,7 +55,38 @@ else
     bad 'expand_user_path'
 fi
 
-# 5) pickup after configure (uses scratch install if present)
+# 5) tarball install-dir arg (must capture $2; ~ expanded)
+tar_out=$(bash -c '
+    source "'"$ROOT"'/scripts/lib/common.sh"
+    source "'"$ROOT"'/scripts/lib/tarball.sh"
+    DRY_RUN=1
+    tarball_extract_install_dir "/fake/archive.tar.gz" "~/tarball-test/eb-release"
+' 2>&1)
+if echo "$tar_out" | grep -q "${HOME}/tarball-test/eb-release"; then
+    ok 'tarball_extract_install_dir expands install-dir'
+else
+    bad "tarball_extract_install_dir: $tar_out"
+fi
+
+# 6) configure log EGS_HOME wins over --egs-home on resolve_paths
+resolve_out=$(bash -c '
+    source "'"$ROOT"'/scripts/lib/common.sh"
+    export EGS_CONFIG="'"$HOME"'/scratch/tarball-test/eb-release/HEN_HOUSE/specs/tarball.conf"
+    EGS_HOME_OVERRIDE="'"$HOME"'/scratch/tarball-egs_home"
+    resolve_paths
+    echo "$EGS_HOME_RESOLVED"
+' 2>&1)
+if [[ -f "$HOME/scratch/tarball-test/eb-release/HEN_HOUSE/log/configure-tarball-marc.log" ]]; then
+    if echo "$resolve_out" | grep -q 'eb-release/egs_home'; then
+        ok 'resolve_paths prefers finalize log over --egs-home'
+    else
+        bad "resolve_paths should use configure log EGS_HOME: $resolve_out"
+    fi
+else
+    ok 'resolve_paths configure-log test skipped (no tarball install)'
+fi
+
+# 7) pickup after configure (uses scratch install if present)
 if [[ -f "$HOME/scratch/eb/HEN_HOUSE/specs/test.conf" ]]; then
     pickup_out=$(bash -c '
         source "'"$ROOT"'/scripts/lib/common.sh"
@@ -69,6 +100,26 @@ if [[ -f "$HOME/scratch/eb/HEN_HOUSE/specs/test.conf" ]]; then
     else
         bad "pickup failed: $pickup_out"
     fi
+fi
+
+# 8) eb-env.sh is EGSnrc-only (no CLRP bashrc additions)
+env_out=$(bash -c '
+    tmp=$(mktemp -d)
+    mkdir -p "$tmp/HEN_HOUSE/scripts" "$tmp/HEN_HOUSE/specs"
+    printf "my_machine = linux\nHEN_HOUSE = %s/HEN_HOUSE\n" "$tmp" > "$tmp/HEN_HOUSE/specs/test.conf"
+    source "'"$ROOT"'/scripts/lib/common.sh"
+    REPO_ROOT="$tmp"
+    HEN_HOUSE="$tmp/HEN_HOUSE"
+    EGS_CONFIG_RESOLVED="$tmp/HEN_HOUSE/specs/test.conf"
+    EGS_HOME_RESOLVED="'"$HOME"'/scratch/egs_home/"
+    emit_shell_setup >/dev/null
+    cat "$tmp/eb-env.sh"
+' 2>&1)
+if echo "$env_out" | grep -q 'egsnrc_bashrc_additions' \
+    && ! echo "$env_out" | grep -q 'clrp_bashrc_additions'; then
+    ok 'eb-env.sh sources egsnrc_bashrc_additions only'
+else
+    bad "eb-env.sh should not reference clrp_bashrc_additions: $env_out"
 fi
 
 echo "---"

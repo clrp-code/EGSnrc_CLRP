@@ -75,7 +75,7 @@ tarball_apply_to_repo() {
 }
 
 tarball_extract_install_dir() {
-    local archive="$1" dest
+    local archive="$1" dest="$2"
     dest="$(expand_user_path "$dest")"
     tarball_extract_to_temp "$archive"
     if (( DRY_RUN )); then
