@@ -66,27 +66,37 @@ Checklist:
 - [ ] `check` shows **release tarball (no git)**
 - [ ] egs log banner shows `EGSnrc <version> for …` (from `release.mk` in tarball)
 
-## Version banner (`EGS_RELEASE` / `GIT_HASH`)
+## Version banner (`EGS_RELEASE` / commit SHAs)
 
-Git checkouts pick up release label and commit hash at **compile time** via make (`HEN_HOUSE/specs/all_common.spec`):
+Git checkouts pick up metadata at **compile time** via make (`HEN_HOUSE/specs/all_common.spec`):
 
 - **`EGS_RELEASE`** — nearest annotated git tag (`git describe --tags --abbrev=0`), with leading `v` or `egs_brachy-` stripped
-- **`GIT_HASH`** — short commit hash (empty if not in a git repo)
+- **`EGS_CLRP_HASH`** — short SHA of the **EGSnrc_CLRP** repo
+- **`EGS_BRACHY_HASH`** — short SHA of the **egs_brachy** submodule
+
+The egs log startup block (all user codes via `egs_init1`) shows:
+
+```
+EGSnrc 1.0.0-alpha.1 for arm-apple-darwin…
+…
+EGSnrc_CLRP commit ................... cab17a9
+egs_brachy commit .................... a1b2c3d
+application .......................... egs_brachy
+```
 
 End-user tarballs have **no `.git`**, so `scripts/build-release-tarball.sh` writes `HEN_HOUSE/specs/release.mk` into the tarball:
 
 ```makefile
 EGS_RELEASE = -DEGS_RELEASE="\"1.0.0-alpha.1\""
-GIT_HASH = -DGIT_HASH="\"cab17a98\""
+EGS_CLRP_HASH = -DEGS_CLRP_HASH="\"cab17a9\""
+EGS_BRACHY_HASH = -DEGS_BRACHY_HASH="\"a1b2c3d\""
 ```
 
-After install/configure/sync, recompiling shows in the egs log, e.g.:
+**Git installs:** `eb-setup.sh install` / `update` / `sync` writes `release.mk` from live git SHAs before rebuilding egs_brachy. Developers who commit locally should run **`eb-setup.sh sync`** to refresh metadata (then `make` in other `$EGS_HOME` user codes if needed).
 
-```
-EGSnrc 1.0.0-alpha.1 for arm-apple-darwin…
-```
+**Tarball updates:** `update --from-tarball` copies `release.mk` from the new tarball payload (rsync `--ignore-existing` would otherwise leave a stale file).
 
-If `EGS_RELEASE` is unset, the banner is `EGSnrc for …` (no fake “version 4”).
+If `EGS_RELEASE` is unset, the banner is `EGSnrc for …` (no fake “version 4”). Commit lines are omitted when the corresponding macro is empty.
 
 ## GitHub Actions
 

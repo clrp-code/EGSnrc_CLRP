@@ -107,6 +107,12 @@ cmd_update_from_tarball() {
         log "dry-run complete (skipped egs++ rebuild and sync)"
         return 0
     fi
+    if [[ -f "${TARBALL_PAYLOAD_ROOT}/HEN_HOUSE/specs/release.mk" ]]; then
+        mkdir -p "${HEN_HOUSE%/}/specs"
+        run cp "${TARBALL_PAYLOAD_ROOT}/HEN_HOUSE/specs/release.mk" \
+            "${HEN_HOUSE%/}/specs/release.mk"
+        log "updated HEN_HOUSE/specs/release.mk from release tarball"
+    fi
     log "rebuilding egs++..."
     run make -C "$HEN_HOUSE/egs++"
     sync_egs_brachy_from_henhouse

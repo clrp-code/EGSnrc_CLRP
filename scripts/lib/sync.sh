@@ -33,6 +33,7 @@ sync_egs_brachy_from_henhouse() {
     if (( EB_YES )); then rsync_opts+=(--delete-after); fi
     log "syncing egs_brachy to EGS_HOME..."
     run rsync "${rsync_opts[@]}" "$src" "$dst"
+    write_release_mk
 }
 
 cmd_sync() {

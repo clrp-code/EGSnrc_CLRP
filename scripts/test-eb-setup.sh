@@ -125,19 +125,38 @@ else
     bad "eb-env.sh should not reference clrp_bashrc_additions: $env_out"
 fi
 
-# 9) release tarball injects release.mk with EGS_RELEASE + GIT_HASH
+# 9) release tarball injects release.mk with EGS_RELEASE + both SHAs
 if [[ -f "$ROOT/HEN_HOUSE/user_codes/egs_brachy/egs_brachy/Makefile" ]]; then
-    if "$ROOT/scripts/build-release-tarball.sh" 9.9.9-test >/dev/null 2>&1 \
-        && grep -q 'EGS_RELEASE.*9.9.9-test' \
-            "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test/HEN_HOUSE/specs/release.mk" 2>/dev/null; then
-        ok 'build-release-tarball.sh writes release.mk'
+    rm_out="$("$ROOT/scripts/build-release-tarball.sh" 9.9.9-test 2>&1)" || true
+    rel_mk="$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test/HEN_HOUSE/specs/release.mk"
+    if [[ -f "$rel_mk" ]] \
+        && grep -q 'EGS_RELEASE.*9.9.9-test' "$rel_mk" \
+        && grep -q 'EGS_CLRP_HASH' "$rel_mk" \
+        && grep -q 'EGS_BRACHY_HASH' "$rel_mk"; then
+        ok 'build-release-tarball.sh writes release.mk with dual SHAs'
         rm -rf "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test" \
                "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test.tar.gz"
     else
-        bad 'build-release-tarball.sh release.mk injection'
+        bad "build-release-tarball.sh release.mk: $rm_out"
     fi
 else
     ok 'release.mk test skipped (egs_brachy submodule not initialized)'
+fi
+
+# 10) write_release_mk on git install tree
+if [[ -d "$HOME/scratch/eb/.git" && -f "$HOME/scratch/eb/HEN_HOUSE/specs/test.conf" ]]; then
+    wmk_out=$(bash -c '
+        source "'"$ROOT"'/scripts/lib/common.sh"
+        export EGS_CONFIG="'"$HOME"'/scratch/eb/HEN_HOUSE/specs/test.conf"
+        resolve_paths
+        write_release_mk
+        cat "'"$HOME"'/scratch/eb/HEN_HOUSE/specs/release.mk"
+    ' 2>&1)
+    if echo "$wmk_out" | grep -q 'EGS_CLRP_HASH' && echo "$wmk_out" | grep -q 'EGS_BRACHY_HASH'; then
+        ok 'write_release_mk writes dual SHAs on git install'
+    else
+        bad "write_release_mk: $wmk_out"
+    fi
 fi
 
 echo "---"

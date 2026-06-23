@@ -105,7 +105,7 @@ egs_interface2_$(my_machine).$(obje): $(dep_egs_interface)
 	$(object_rule)
 
 egsnrc_$(my_machine).$(obje): egsnrc_$(my_machine).F array_sizes.h
-	$(F77) -cpp $(FC_FLAGS) $(FDEFS) $(COMPILE_TIME) $(GIT_HASH) $(EGS_RELEASE) -c $(FOUT)$@ $<
+	$(F77) -cpp $(FC_FLAGS) $(FDEFS) $(COMPILE_TIME) $(GIT_HASH) $(EGS_RELEASE) $(EGS_CLRP_HASH) $(EGS_BRACHY_HASH) -c $(FOUT)$@ $<
 
 egsnrc_$(my_machine).F: $(CPP_SOURCES)
 	@echo "Mortran compiling EGSnrc sources ..."

@@ -140,6 +140,18 @@ else
     EGS_RELEASE = -DEGS_RELEASE="\"$(shell if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then git describe --tags --abbrev=0 2>/dev/null | sed -e 's/^v//' -e 's/^egs_brachy-//'; fi)\""
 endif
 
+EGS_CLRP_HASH =
+EGS_BRACHY_HASH =
+ifneq ($(HEN_HOUSE),)
+ifeq ($(OS),Windows_NT)
+    EGS_CLRP_HASH = -DEGS_CLRP_HASH="\"$(shell cmd /C git -C \"$(HEN_HOUSE)..\" rev-parse --short=7 HEAD 2>NUL)\""
+    EGS_BRACHY_HASH = -DEGS_BRACHY_HASH="\"$(shell cmd /C git -C \"$(HEN_HOUSE)user_codes\\egs_brachy\" rev-parse --short=7 HEAD 2>NUL)\""
+else
+    EGS_CLRP_HASH = -DEGS_CLRP_HASH="\"$(shell if git -C '$(HEN_HOUSE)/..' rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C '$(HEN_HOUSE)/..' rev-parse --short=7 HEAD; fi)\""
+    EGS_BRACHY_HASH = -DEGS_BRACHY_HASH="\"$(shell if git -C '$(HEN_HOUSE)user_codes/egs_brachy' rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C '$(HEN_HOUSE)user_codes/egs_brachy' rev-parse --short=7 HEAD; fi)\""
+endif
+endif
+
 COMPILE_TIME =
 ifeq ($(OS),Windows_NT)
     COMPILE_TIME = -DCOMPILE_TIME="\"$(shell cmd /C date /T)$(shell cmd /C time /T)\""
