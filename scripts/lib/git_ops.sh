@@ -24,10 +24,124 @@ run_egsnrc_configure() {
     (( cfg_status == 0 )) || die "EGSnrc configure failed (see HEN_HOUSE/log/configure*.log)"
 }
 
+_git_checkout_and_submodule() {
+    local cur_branch="$(_git_branch "$REPO_ROOT")"
+    if [[ "$cur_branch" == "egs_brachy" ]]; then
+        log "on egs_brachy branch"
+    elif [[ -f "$REPO_ROOT/eb-setup.sh" ]]; then
+        warn "staying on branch $cur_branch (eb-setup testing branch)"
+    else
+        log "checking out egs_brachy branch..."
+        run git -C "$REPO_ROOT" checkout egs_brachy
+    fi
+    log "initializing egs_brachy submodule..."
+    run git -C "$REPO_ROOT" submodule update --init --recursive
+}
+
+_cmd_install_from_tarball_file() {
+    local dest
+    dest="$(eb_install_dest)"
+    if install_dest_taken "$dest"; then
+        die "install dir already exists: $dest (use: eb-setup.sh update)"
+    fi
+    check_mortran_path_lengths_for "$dest"
+    tarball_require_path
+    tarball_extract_install_dir "$TARBALL_PATH" "$dest"
+    trap tarball_cleanup_temp EXIT
+    if is_eb_setup_bootstrap_tree; then
+        write_install_root "$dest"
+    fi
+}
+
+_cmd_install_bootstrap() {
+    local dest bootstrap_root="$EB_ROOT"
+    dest="$(eb_install_dest)"
+    if install_dest_taken "$dest"; then
+        die "install dir already exists: $dest (use: eb-setup.sh update)"
+    fi
+    check_mortran_path_lengths_for "$dest"
+    if (( INSTALL_GIT )); then
+        log "cloning CLRP fork to $dest..."
+        run git clone https://github.com/clrp-code/EGSnrc_CLRP.git "$dest"
+        REPO_ROOT="$dest"
+        HEN_HOUSE="${dest%/}/HEN_HOUSE"
+        EB_SUBMODULE="${HEN_HOUSE}/user_codes/egs_brachy"
+        _git_checkout_and_submodule
+    else
+        log "bootstrap installer — fetching release to $dest"
+        tarball_download_release \
+            || die "could not download release (network? use: install --from-tarball PATH)"
+        tarball_extract_install_dir "$TARBALL_PATH" "$dest"
+        trap tarball_cleanup_temp EXIT
+    fi
+    write_install_root "$dest"
+    REPO_ROOT="$dest"
+    HEN_HOUSE="${dest%/}/HEN_HOUSE"
+    EB_SUBMODULE="${HEN_HOUSE}/user_codes/egs_brachy"
+    if [[ "$bootstrap_root" != "$REPO_ROOT" ]]; then
+        log "for day-to-day use:  cd $REPO_ROOT && source ./eb-env.sh"
+    fi
+}
+
+_cmd_install_release_inplace() {
+    if [[ -n "$INSTALL_DIR" ]]; then
+        local id
+        id="$(expand_user_path "$INSTALL_DIR")"
+        [[ "$id" == "$REPO_ROOT" ]] || die "--install-dir conflicts with in-place install (run from $REPO_ROOT)"
+    fi
+    log "release tree detected — in-place install"
+    check_mortran_path_lengths
+}
+
+_cmd_install_git_clone() {
+    local dest
+    dest="$(eb_install_dest)"
+    if install_dest_taken "$dest"; then
+        die "install dir already exists: $dest"
+    fi
+    check_mortran_path_lengths_for "$dest"
+    log "cloning CLRP fork to $dest..."
+    run git clone https://github.com/clrp-code/EGSnrc_CLRP.git "$dest"
+    REPO_ROOT="$dest"
+    HEN_HOUSE="${dest%/}/HEN_HOUSE"
+    EB_SUBMODULE="${HEN_HOUSE}/user_codes/egs_brachy"
+    _git_checkout_and_submodule
+}
+
+_cmd_install_git_tree() {
+    check_mortran_path_lengths
+    _git_checkout_and_submodule
+}
+
+_cmd_install_finish() {
+    if [[ -z "$EGS_CONFIG_RESOLVED" ]]; then
+        log "configure EGSnrc (interactive)..."
+        run_egsnrc_configure
+        pickup_egsnrc_env_after_configure
+        export_egs_env
+        log "configure complete — continuing with sync"
+    fi
+    cmd_sync
+    emit_shell_setup
+    log "install complete"
+}
+
 cmd_update() {
     resolve_paths; preflight_tools
+    if is_eb_setup_bootstrap_tree && [[ -z "${HEN_HOUSE:-}" || ! -d "$HEN_HOUSE" ]]; then
+        die "no installation found — run: eb-setup.sh install (default: $(eb_default_install_dir))"
+    fi
     if (( FROM_TARBALL )); then
         cmd_update_from_tarball
+        return
+    fi
+    if is_release_install_tree; then
+        if tarball_download_release; then
+            FROM_TARBALL=1
+            cmd_update_from_tarball
+        else
+            log "update complete (no newer release)"
+        fi
         return
     fi
     [[ -n "$REPO_ROOT" ]] || die "cannot find EGSnrc repo root"
@@ -53,46 +167,23 @@ cmd_update() {
 }
 
 cmd_install() {
-    resolve_paths; preflight_tools; check_mortran_path_lengths
+    resolve_paths; preflight_tools
+
     if (( FROM_TARBALL )); then
-        tarball_require_path
-        local dest
-        dest="$(expand_user_path "${INSTALL_DIR:-$HOME/scratch/eb}")"
-        if [[ -f "$dest/eb-setup.sh" || -d "$dest/HEN_HOUSE" ]]; then
-            die "install dir already exists: $dest (use: update --from-tarball PATH)"
-        fi
-        tarball_extract_install_dir "$TARBALL_PATH" "$dest"
-        trap tarball_cleanup_temp EXIT
+        _cmd_install_from_tarball_file
+    elif is_eb_setup_bootstrap_tree; then
+        _cmd_install_bootstrap
+    elif is_release_install_tree; then
+        _cmd_install_release_inplace
+    elif [[ -d "$REPO_ROOT/.git" ]]; then
+        _cmd_install_git_tree
+    elif (( INSTALL_GIT )); then
+        _cmd_install_git_clone
     else
-        if [[ ! -d "$REPO_ROOT/.git" ]]; then
-            local dest
-            dest="$(expand_user_path "${INSTALL_DIR:-$HOME/scratch/eb}")"
-            log "cloning CLRP fork to $dest..."
-            run git clone https://github.com/clrp-code/EGSnrc_CLRP.git "$dest"
-            REPO_ROOT="$dest"; HEN_HOUSE="$dest/HEN_HOUSE"; EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"
-        fi
-        local cur_branch="$(_git_branch "$REPO_ROOT")"
-        if [[ "$cur_branch" == "egs_brachy" ]]; then
-            log "on egs_brachy branch"
-        elif [[ -f "$REPO_ROOT/eb-setup.sh" ]]; then
-            warn "staying on branch $cur_branch (eb-setup testing branch)"
-        else
-            log "checking out egs_brachy branch..."
-            run git -C "$REPO_ROOT" checkout egs_brachy
-        fi
-        log "initializing egs_brachy submodule..."
-        run git -C "$REPO_ROOT" submodule update --init --recursive
+        die "cannot install from this location (extract eb-setup tarball, or use install --git)"
     fi
-    if [[ -z "$EGS_CONFIG_RESOLVED" ]]; then
-        log "configure EGSnrc (interactive)..."
-        run_egsnrc_configure
-        pickup_egsnrc_env_after_configure
-        export_egs_env
-        log "configure complete — continuing with sync"
-    fi
-    cmd_sync
-    emit_shell_setup
-    log "install complete"
+
+    _cmd_install_finish
 }
 
 cmd_env() {

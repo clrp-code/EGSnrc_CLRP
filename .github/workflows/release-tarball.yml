@@ -36,6 +36,9 @@ jobs:
       - name: Build end-user tarball (no .git)
         run: ./scripts/build-release-tarball.sh "${{ steps.ver.outputs.version }}"
 
+      - name: Build eb-setup bootstrap tarball
+        run: ./scripts/build-eb-setup-tarball.sh "${{ steps.ver.outputs.version }}"
+
       - name: Build source tarball (with .git)
         if: steps.ver.outputs.is_tag_push == 'true'
         run: |

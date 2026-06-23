@@ -1,10 +1,171 @@
 # shellcheck shell=bash
 # Release tarball install/update (no git). See .github/workflows/release-tarball.yml.
 
+# Slim bootstrap tree: eb-setup.sh + scripts only (no HEN_HOUSE).
+is_eb_setup_bootstrap_tree() {
+    [[ -n "${REPO_ROOT:-}" ]] || return 1
+    [[ -f "$REPO_ROOT/eb-setup.sh" ]] || return 1
+    [[ -d "$REPO_ROOT/scripts/lib" ]] || return 1
+    [[ ! -f "$REPO_ROOT/HEN_HOUSE/specs/unix.spec" ]] || return 1
+}
+
+# End-user release tree: extracted tarball with eb-setup.sh, no .git at repo root.
+is_release_install_tree() {
+    [[ -n "${REPO_ROOT:-}" ]] || return 1
+    [[ -f "$REPO_ROOT/eb-setup.sh" ]] || return 1
+    [[ -f "$REPO_ROOT/HEN_HOUSE/specs/unix.spec" ]] || return 1
+    [[ ! -d "$REPO_ROOT/.git" ]] || return 1
+}
+
+# Where bootstrap install placed (or will place) the full release tree.
+resolve_install_root() {
+    local f ir default
+    default="$(eb_default_install_dir)"
+    f="${EB_ROOT}/.eb-setup/install-root"
+    if [[ -f "$f" ]]; then
+        ir="$(expand_user_path "$(head -1 "$f")")"
+        [[ -d "$ir/HEN_HOUSE" ]] && { echo "$ir"; return 0; }
+    fi
+    if [[ -d "$default/HEN_HOUSE" ]]; then
+        echo "$default"
+        return 0
+    fi
+    return 1
+}
+
+write_install_root() {
+    local root="$1"
+    mkdir -p "${EB_ROOT}/.eb-setup"
+    printf '%s\n' "$(expand_user_path "$root")" > "${EB_ROOT}/.eb-setup/install-root"
+}
+
+install_dest_taken() {
+    local dest="$1"
+    [[ -f "$dest/eb-setup.sh" || -d "$dest/HEN_HOUSE" ]]
+}
+
+_tarball_cache_root() {
+    local root=""
+    root="$(resolve_install_root 2>/dev/null || true)"
+    [[ -n "$root" ]] && { echo "$root"; return 0; }
+    if is_eb_setup_bootstrap_tree; then
+        echo "${EB_ROOT}"
+        return 0
+    fi
+    echo "${REPO_ROOT:-${HOME}/.cache/eb-setup}"
+}
+
+_read_installed_release_version() {
+    local spec="${HEN_HOUSE%/}/specs/release.mk"
+    [[ -f "$spec" ]] || return 0
+    grep -E '^EGS_RELEASE[[:space:]]*=' "$spec" 2>/dev/null | head -1 \
+        | sed -E 's/^EGS_RELEASE[[:space:]]*=[[:space:]]*-DEGS_RELEASE="\\"([^"\\]+)\\""/\1/'
+}
+
+# Pick end-user tarball asset URL from GitHub releases JSON (read stdin).
+_tarball_pick_asset_url() {
+    local repo="$1" tag="${2:-}" json
+    json="$(cat)"
+    need_cmd python3
+    JSON_PAYLOAD="$json" python3 - "$repo" "$tag" <<'PY'
+import json, os, re, sys
+
+repo = sys.argv[1]
+tag = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else ""
+data = json.loads(os.environ["JSON_PAYLOAD"])
+pattern = re.compile(r"^EGSnrc_CLRP-egs_brachy-(.+)\.tar\.gz$")
+
+def asset_url(release):
+    for asset in release.get("assets") or []:
+        name = asset.get("name") or ""
+        if "-src" in name:
+            continue
+        m = pattern.match(name)
+        if m:
+            return asset.get("browser_download_url") or "", m.group(1)
+    return "", ""
+
+if tag:
+    want = tag if tag.startswith("egs_brachy-") else f"egs_brachy-{tag}"
+    for rel in data if isinstance(data, list) else [data]:
+        if rel.get("draft"):
+            continue
+        if rel.get("tag_name") == want:
+            url, ver = asset_url(rel)
+            if url:
+                print(url)
+                print(ver)
+                sys.exit(0)
+    sys.exit(1)
+
+for rel in data if isinstance(data, list) else []:
+    if rel.get("draft"):
+        continue
+    url, ver = asset_url(rel)
+    if url:
+        print(url)
+        print(ver)
+        sys.exit(0)
+sys.exit(1)
+PY
+}
+
+tarball_fetch_release_info() {
+    local repo="${EB_RELEASE_REPO:-clrp-code/EGSnrc_CLRP}"
+    local tag="${EB_RELEASE_TAG:-}"
+    need_cmd curl
+    local api_out pick_out url version
+    if [[ -n "$tag" ]]; then
+        local want="$tag"
+        [[ "$want" == egs_brachy-* ]] || want="egs_brachy-$want"
+        api_out="$(curl -fsSL "https://api.github.com/repos/${repo}/releases/tags/${want}")" \
+            || die "GitHub release not found: ${want} (set EB_RELEASE_TAG or use --from-tarball)"
+    else
+        api_out="$(curl -fsSL "https://api.github.com/repos/${repo}/releases?per_page=30")" \
+            || die "could not fetch GitHub releases for ${repo} (network? use --from-tarball PATH)"
+    fi
+    pick_out="$(printf '%s' "$api_out" | _tarball_pick_asset_url "$repo" "$tag")" \
+        || die "no end-user tarball asset on GitHub release (expected EGSnrc_CLRP-egs_brachy-*.tar.gz)"
+    url="$(sed -n '1p' <<<"$pick_out")"
+    version="$(sed -n '2p' <<<"$pick_out")"
+    printf '%s\n%s\n' "$url" "$version"
+}
+
+# Download latest (or EB_RELEASE_TAG / EB_RELEASE_URL) end-user tarball. Returns 1 if already current.
+tarball_download_release() {
+    local url version dest cache_dir fname installed info
+    if [[ -n "${EB_RELEASE_URL:-}" ]]; then
+        url="$EB_RELEASE_URL"
+        version="$(basename "$url" .tar.gz | sed 's/^EGSnrc_CLRP-egs_brachy-//')"
+    else
+        info="$(tarball_fetch_release_info)"
+        url="$(sed -n '1p' <<<"$info")"
+        version="$(sed -n '2p' <<<"$info")"
+    fi
+    installed="$(_read_installed_release_version)"
+    if [[ -n "$installed" && "$installed" == "$version" ]]; then
+        log "already at release $version (HEN_HOUSE/specs/release.mk)"
+        return 1
+    fi
+    cache_dir="$(_tarball_cache_root)/.eb-setup/cache"
+    mkdir -p "$cache_dir"
+    fname="EGSnrc_CLRP-egs_brachy-${version}.tar.gz"
+    dest="$cache_dir/$fname"
+    log "downloading release ${version}..."
+    if (( DRY_RUN )); then
+        printf 'eb-setup: [dry-run] curl -fsSL -o %q %q\n' "$dest" "$url"
+        TARBALL_PATH="$dest"
+        return 0
+    fi
+    run curl -fsSL -o "$dest" "$url"
+    TARBALL_PATH="$dest"
+    log "saved $dest"
+}
+
 tarball_require_path() {
     [[ -n "$TARBALL_PATH" ]] || die "--from-tarball PATH is required (path to release .tar.gz)"
     TARBALL_PATH="$(expand_user_path "$TARBALL_PATH")"
-    [[ -f "$TARBALL_PATH" ]] || die "tarball not found: $TARBALL_PATH"
+    [[ -f "$TARBALL_PATH" ]] || (( DRY_RUN )) || die "tarball not found: $TARBALL_PATH"
     case "$TARBALL_PATH" in
         *.tar.gz|*.tgz) ;;
         *) die "tarball must be .tar.gz or .tgz: $TARBALL_PATH" ;;

@@ -159,6 +159,110 @@ if [[ -d "$HOME/scratch/eb/.git" && -f "$HOME/scratch/eb/HEN_HOUSE/specs/test.co
     fi
 fi
 
+# 11) is_release_install_tree detects extracted tarball layout
+tree_out=$(bash -c '
+    source "'"$ROOT"'/scripts/lib/common.sh"
+    source "'"$ROOT"'/scripts/lib/tarball.sh"
+    REPO_ROOT="'"$ROOT"'"
+    is_release_install_tree && echo release || echo git
+' 2>&1)
+if [[ "$tree_out" == git ]]; then
+    ok 'is_release_install_tree false on git dev tree'
+else
+    bad "is_release_install_tree should be false on git tree: $tree_out"
+fi
+fake_tree=$(mktemp -d)
+mkdir -p "$fake_tree/HEN_HOUSE/specs"
+touch "$fake_tree/eb-setup.sh" "$fake_tree/HEN_HOUSE/specs/unix.spec"
+tree_out2=$(bash -c '
+    source "'"$ROOT"'/scripts/lib/common.sh"
+    source "'"$ROOT"'/scripts/lib/tarball.sh"
+    REPO_ROOT="'"$fake_tree"'"
+    is_release_install_tree && echo release || echo no
+' 2>&1)
+rm -rf "$fake_tree"
+if [[ "$tree_out2" == release ]]; then
+    ok 'is_release_install_tree true on fake release tree'
+else
+    bad "is_release_install_tree fake tree: $tree_out2"
+fi
+
+# 12) GitHub release JSON asset picker (offline fixture)
+pick_out=$(bash -c '
+    source "'"$ROOT"'/scripts/lib/common.sh"
+    source "'"$ROOT"'/scripts/lib/tarball.sh"
+    printf "%s" '"'"'[{"draft":false,"tag_name":"egs_brachy-1.0.0","assets":[{"name":"EGSnrc_CLRP-egs_brachy-1.0.0-src.tar.gz","browser_download_url":"https://example/src"},{"name":"EGSnrc_CLRP-egs_brachy-1.0.0.tar.gz","browser_download_url":"https://example/enduser"}]}]'"'"' \
+        | _tarball_pick_asset_url clrp-code/EGSnrc_CLRP ""
+' 2>&1)
+if echo "$pick_out" | grep -q 'https://example/enduser' \
+    && echo "$pick_out" | grep -q '^1\.0\.0$'; then
+    ok '_tarball_pick_asset_url skips -src asset'
+else
+    bad "_tarball_pick_asset_url: $pick_out"
+fi
+
+# 13) is_eb_setup_bootstrap_tree
+bootstrap=$(mktemp -d)
+mkdir -p "$bootstrap/scripts/lib"
+cp "$ROOT/eb-setup.sh" "$bootstrap/"
+cp -R "$ROOT/scripts/lib" "$bootstrap/scripts/"
+boot_out=$(bash -c '
+    source "'"$ROOT"'/scripts/lib/common.sh"
+    source "'"$ROOT"'/scripts/lib/tarball.sh"
+    EB_ROOT="'"$bootstrap"'"
+    REPO_ROOT="'"$bootstrap"'"
+    is_eb_setup_bootstrap_tree && echo bootstrap || echo no
+' 2>&1)
+rm -rf "$bootstrap"
+if [[ "$boot_out" == bootstrap ]]; then
+    ok 'is_eb_setup_bootstrap_tree true on slim installer tree'
+else
+    bad "is_eb_setup_bootstrap_tree: $boot_out"
+fi
+
+# 14) default install dir
+def_out=$(bash -c 'source "'"$ROOT"'/scripts/lib/common.sh"; eb_default_install_dir')
+if [[ "$def_out" == "${HOME}/EGSnrc_CLRP" ]]; then
+    ok 'eb_default_install_dir is ~/EGSnrc_CLRP'
+else
+    bad "eb_default_install_dir: $def_out"
+fi
+
+# 15) build-eb-setup-tarball.sh layout
+if [[ -x "$ROOT/scripts/build-eb-setup-tarball.sh" ]]; then
+    eb_out="$("$ROOT/scripts/build-eb-setup-tarball.sh" 9.9.9-eb-test 2>&1)" || true
+    if [[ -f "$ROOT/dist/EGSnrc_CLRP-eb-setup-9.9.9-eb-test.tar.gz" ]] \
+        && tar -tzf "$ROOT/dist/EGSnrc_CLRP-eb-setup-9.9.9-eb-test.tar.gz" | grep -q 'eb-setup.sh' \
+        && tar -tzf "$ROOT/dist/EGSnrc_CLRP-eb-setup-9.9.9-eb-test.tar.gz" | grep -q 'scripts/lib/tarball.sh'; then
+        ok 'build-eb-setup-tarball.sh packs eb-setup.sh + scripts'
+        rm -rf "$ROOT/dist/EGSnrc_CLRP-eb-setup-9.9.9-eb-test" \
+               "$ROOT/dist/EGSnrc_CLRP-eb-setup-9.9.9-eb-test.tar.gz"
+    else
+        bad "build-eb-setup-tarball.sh: $eb_out"
+    fi
+else
+    bad 'build-eb-setup-tarball.sh not executable'
+fi
+
+# 16) bootstrap install dry-run uses default install dir
+boot16=$(mktemp -d)
+mkdir -p "$boot16/scripts/lib"
+cp "$ROOT/eb-setup.sh" "$boot16/"
+cp -R "$ROOT/scripts" "$boot16/"
+boot_install_out=$(bash -c '
+    cd "'"$boot16"'"
+    unset EGS_CONFIG HEN_HOUSE EGS_HOME
+    DRY_RUN=1 EB_RELEASE_URL=https://example/fake/EGSnrc_CLRP-egs_brachy-9.9.9.tar.gz \
+        ./eb-setup.sh install 2>&1
+' 2>&1 || true)
+rm -rf "$boot16"
+if echo "$boot_install_out" | grep -q 'bootstrap installer' \
+    && echo "$boot_install_out" | grep -q "${HOME}/EGSnrc_CLRP"; then
+    ok 'bootstrap install dry-run targets ~/EGSnrc_CLRP'
+else
+    bad "bootstrap install dry-run: $boot_install_out"
+fi
+
 echo "---"
 printf '%d passed, %d failed\n' "$pass" "$fail"
 (( fail == 0 ))

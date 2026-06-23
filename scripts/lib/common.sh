@@ -5,6 +5,7 @@ EB_SETUP_VERSION="0.1.0-dev"
 
 EB_CMD=""
 FROM_TARBALL=0
+INSTALL_GIT=0
 INSTALL_DIR=""
 TARBALL_PATH=""
 TARBALL_TMPDIR=""
@@ -73,6 +74,7 @@ parse_args() {
                 shift 2
                 ;;
             --install-dir)    INSTALL_DIR="${2:?}"; shift 2 ;;
+            --git)            INSTALL_GIT=1; shift ;;
             --egs-home)       EGS_HOME_OVERRIDE="${2:?}"; shift 2 ;;
             --non-interactive) NON_INTERACTIVE=1; shift ;;
             --yes)            EB_YES=1; shift ;;
@@ -94,12 +96,20 @@ Usage: eb-setup.sh <command> [options]
 
 Commands: check | install | update | sync | env | help
 
-Options: --from-tarball PATH --install-dir PATH --egs-home PATH
+Options: --from-tarball PATH --install-dir PATH --egs-home PATH --git
          --non-interactive --yes --dry-run --strict --stash
 
-Tarball:  update --from-tarball release.tar.gz
-          install --from-tarball release.tar.gz --install-dir PATH
+Install:  install                     bootstrap: download release → ~/EGSnrc_CLRP
+          install --git               clone egs_brachy branch (developers)
+          install --from-tarball PATH offline install from local .tar.gz
+          install                     release tree: in-place configure + sync
+
+Update:   update                      download latest GitHub release (release tree)
+          update --from-tarball PATH  offline / pinned file
           (--tarball PATH is an alias for --from-tarball PATH)
+
+Release:  EB_RELEASE_TAG=1.0.0-alpha.2  pin GitHub release tag
+          EB_RELEASE_URL=https://…        direct tarball URL (offline mirror)
 
 Testing: branch feature/eb-setup; scratch ~/Developer/scratch
 Docs:    docs/eb-setup-testing.md  docs/branch-layout.md
@@ -109,6 +119,21 @@ EOF
 _config_value() {
     local key="$1" file="$2"
     grep -E "^${key}[[:space:]]*=" "$file" 2>/dev/null | head -1 | sed -E "s/^${key}[[:space:]]*=[[:space:]]*//" | tr -d '\r'
+}
+
+# Default end-user install location (short path for Mortran machine.macros).
+eb_default_install_dir() { echo "${HOME}/EGSnrc_CLRP"; }
+
+eb_install_dest() {
+    expand_user_path "${INSTALL_DIR:-$(eb_default_install_dir)}"
+}
+
+# Temporarily set REPO_ROOT for Mortran path-length check on a not-yet-installed path.
+check_mortran_path_lengths_for() {
+    local saved="${REPO_ROOT:-}"
+    REPO_ROOT="$1"
+    check_mortran_path_lengths
+    REPO_ROOT="$saved"
 }
 
 # Expand leading ~ (bash does not expand ~ inside quoted --egs-home values).
@@ -153,6 +178,13 @@ resolve_paths() {
         MY_MACHINE="$(_config_value my_machine "$EGS_CONFIG")"
     elif [[ -d "$EB_ROOT/HEN_HOUSE" ]]; then
         HEN_HOUSE="$EB_ROOT/HEN_HOUSE"
+    elif is_eb_setup_bootstrap_tree; then
+        local ir=""
+        ir="$(resolve_install_root 2>/dev/null || true)"
+        if [[ -n "$ir" && -d "$ir/HEN_HOUSE" ]]; then
+            REPO_ROOT="$ir"
+            HEN_HOUSE="${ir%/}/HEN_HOUSE"
+        fi
     fi
     if [[ -n "$HEN_HOUSE" ]]; then EB_SUBMODULE="$HEN_HOUSE/user_codes/egs_brachy"; fi
     # After configure, finalize's log wins over --egs-home (user may have accepted a different path).
@@ -238,7 +270,13 @@ export_egs_env() {
 
 preflight_tools() {
     need_cmd bash; need_cmd make; need_cmd rsync
-    (( FROM_TARBALL )) || need_cmd git
+    if (( FROM_TARBALL )); then return 0; fi
+    if is_eb_setup_bootstrap_tree 2>/dev/null; then
+        (( INSTALL_GIT )) && need_cmd git
+        return 0
+    fi
+    if is_release_install_tree 2>/dev/null; then return 0; fi
+    need_cmd git
 }
 
 # Write HEN_HOUSE/specs/release.mk from git SHAs (git installs; skipped on tarball trees without .git).
@@ -307,9 +345,8 @@ check_mortran_path_lengths() {
     if (( n > EB_MAX_REPO_ROOT_LEN )); then
         warn "repo path is ${n} chars (limit ~${EB_MAX_REPO_ROOT_LEN} for Mortran):"
         warn "  $REPO_ROOT"
-        warn "Use a shorter clone dir, e.g.:"
-        warn "  --install-dir \"\$HOME/scratch/eb\""
-        warn "  ln -s \"\$PWD\" \"\$HOME/scratch/eb\" && cd \"\$HOME/scratch/eb\""
+        warn "Use a shorter install dir, e.g.:"
+        warn "  --install-dir \"\$HOME/EGSnrc_CLRP\""
         if [[ "$EB_CMD" == "install" ]]; then
             die "path too long for EGSnrc configure (see configure.log pegs4 / Mortran stop 12)"
         fi

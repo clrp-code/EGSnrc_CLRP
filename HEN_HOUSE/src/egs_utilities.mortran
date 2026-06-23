@@ -411,7 +411,8 @@ call egs_open_units(.true.);
 " Now print a summary of what happened "
 $egs_info('(a)',line);
 #ifdef EGS_RELEASE;
-$egs_info('(a,a,a,t55,a,$)','EGSnrc ',EGS_RELEASE,' for ',$CANONICAL_SYSTEM,' ');
+$egs_info('(a,a,a,$)','EGSnrc ',EGS_RELEASE,' for ');
+$egs_info('(a)',$CANONICAL_SYSTEM);
 #else;
 $egs_info('(a,a,t55,a,$)','EGSnrc for ',$CANONICAL_SYSTEM,' ');
 #endif;

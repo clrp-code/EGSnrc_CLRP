@@ -14,54 +14,69 @@ Produces in `dist/`:
 
 | File | Purpose |
 |------|---------|
-| `EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1.tar.gz` | fresh `install --from-tarball` |
-| `EGSnrc_CLRP-egs_brachy-1.0.0-alpha.2.tar.gz` | `update --from-tarball` (includes a small marker file) |
+| `EGSnrc_CLRP-eb-setup-1.0.0-alpha.1.tar.gz` | **primary download** — slim bootstrap installer |
+| `EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1.tar.gz` | full release (fetched automatically by bootstrap `install`) |
+| `EGSnrc_CLRP-egs_brachy-1.0.0-alpha.2.tar.gz` | newer release for `update` tests (includes a small marker file) |
 
-Single version: `./scripts/build-release-tarball.sh 1.0.0-alpha.1`
+Single version: `./scripts/build-release-tarball.sh 1.0.0-alpha.1` and `./scripts/build-eb-setup-tarball.sh 1.0.0-alpha.1`
 
 Layout matches CI (`.github/workflows/release-tarball.yml`): no `.git`, vendored `egs_brachy` submodule contents, no local `lib/`/`bin/`/`dso/` build artifacts.
 
 ## Tarball testing walkthrough
 
-Use a **short install path** (Mortran path limits), separate from your git scratch tree:
+Default install location is **`~/EGSnrc_CLRP`** (short path for Mortran; overridable with `--install-dir`).
+
+### Primary path — bootstrap installer (recommended for end users)
 
 ```bash
-mkdir -p ~/scratch/tarball-test
-cd ~/scratch/tarball-test
+# 1) Extract bootstrap anywhere (e.g. home directory)
+tar -xzf /path/to/EGSnrc-eb/dist/EGSnrc_CLRP-eb-setup-1.0.0-alpha.1.tar.gz
+cd EGSnrc_CLRP-eb-setup-1.0.0-alpha.1
 
-# 1) Install from alpha.1
-rm -rf eb-release
-/path/to/EGSnrc-eb/eb-setup.sh install \
-  --from-tarball /path/to/EGSnrc-eb/dist/EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1.tar.gz \
-  --install-dir ~/scratch/tarball-test/eb-release \
-  --egs-home "$HOME/scratch/tarball-egs_home/"
+# 2) Install — downloads full release to ~/EGSnrc_CLRP (or EB_RELEASE_TAG / --from-tarball offline)
+./eb-setup.sh install --egs-home "$HOME/scratch/tarball-egs_home/"
 
 # configure interactively when prompted; install continues to sync + eb-env.sh
 
-# 2) New shell / source env
-cd ~/scratch/tarball-test/eb-release
+# 3) Day-to-day use (from install tree)
+cd ~/EGSnrc_CLRP
 source ./eb-env.sh
 ./eb-setup.sh check    # expect scenario F after configure+sync
 
-# 3) Dry-run update
-./eb-setup.sh update --from-tarball \
-  /path/to/EGSnrc-eb/dist/EGSnrc_CLRP-egs_brachy-1.0.0-alpha.2.tar.gz \
-  --dry-run
-
-# 4) Real update + test
-./eb-setup.sh update --from-tarball \
+# 4) Update (auto-download latest, or offline --from-tarball)
+./eb-setup.sh update --dry-run
+EB_RELEASE_TAG=1.0.0-alpha.2 ./eb-setup.sh update --from-tarball \
   /path/to/EGSnrc-eb/dist/EGSnrc_CLRP-egs_brachy-1.0.0-alpha.2.tar.gz
-cd "$EGS_HOME/egs_brachy" && make test
 
-# 5) Marker file from alpha.2 should appear after update:
-test -f "$EGS_HOME/egs_brachy/.eb-setup-tarball-test-stamp" && cat "$EGS_HOME/egs_brachy/.eb-setup-tarball-test-stamp"
+# 5) Test
+cd "$EGS_HOME/egs_brachy" && make test
+```
+
+You can also run `update` / `check` from the bootstrap directory after install — eb-setup resolves `~/EGSnrc_CLRP` via `.eb-setup/install-root`.
+
+### Alternate paths
+
+```bash
+# In-place install inside an extracted full release tarball
+tar -xzf .../EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1.tar.gz
+cd EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1
+./eb-setup.sh install --egs-home "$HOME/scratch/tarball-egs_home/"
+
+# Offline bootstrap install
+./eb-setup.sh install --from-tarball \
+  /path/to/EGSnrc-eb/dist/EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1.tar.gz
+
+# Developer git clone (no release tarball)
+./eb-setup.sh install --git --install-dir ~/scratch/eb-git
 ```
 
 Checklist:
 
-- [ ] `install --from-tarball` → configure → sync → scenario F
-- [ ] `update --from-tarball --dry-run` shows rsync preview
-- [ ] `update --from-tarball` preserves `HEN_HOUSE/specs/*.conf`
+- [ ] bootstrap `install` → downloads release → `~/EGSnrc_CLRP` → configure → sync → scenario F
+- [ ] `install --git` clones egs_brachy branch (developers)
+- [ ] `install` in extracted full release tree → in-place configure + sync
+- [ ] `install --from-tarball` → offline install
+- [ ] `update` auto-download or `--from-tarball` preserves `HEN_HOUSE/specs/*.conf`
 - [ ] `make test` passes after update
 - [ ] `check` shows **release tarball (no git)**
 - [ ] egs log banner shows `EGSnrc <version> for …` (from `release.mk` in tarball)
@@ -94,7 +109,7 @@ EGS_BRACHY_HASH = -DEGS_BRACHY_HASH="\"a1b2c3d\""
 
 **Git installs:** `eb-setup.sh install` / `update` / `sync` writes `release.mk` from live git SHAs before rebuilding egs_brachy. Developers who commit locally should run **`eb-setup.sh sync`** to refresh metadata (then `make` in other `$EGS_HOME` user codes if needed).
 
-**Tarball updates:** `update --from-tarball` copies `release.mk` from the new tarball payload (rsync `--ignore-existing` would otherwise leave a stale file).
+**Tarball updates:** `update` on a release tree downloads the latest non-draft GitHub release (or `EB_RELEASE_TAG` / `EB_RELEASE_URL`) into `.eb-setup/cache/` and merges it. Use `update --from-tarball PATH` when offline. Copies `release.mk` from the new tarball payload (rsync `--ignore-existing` would otherwise leave a stale file).
 
 If `EGS_RELEASE` is unset, the banner is `EGSnrc for …` (no fake “version 4”). Commit lines are omitted when the corresponding macro is empty.
 
@@ -104,8 +119,8 @@ Workflow: `.github/workflows/release-tarball.yml`
 
 | Trigger | What happens |
 |---------|----------------|
-| **`workflow_dispatch`** (manual, version input) | Builds end-user tarball only; uploads to **Actions artifacts** — no GitHub Release |
-| **Tag push** `egs_brachy-*` | Builds end-user + source tarballs; publishes a **GitHub Release** |
+| **`workflow_dispatch`** (manual, version input) | Builds end-user + eb-setup tarballs; uploads to **Actions artifacts** — no GitHub Release |
+| **Tag push** `egs_brachy-*` | Builds end-user + eb-setup + source tarballs; publishes a **GitHub Release** |
 
 ### Draft and prerelease (alpha/beta tags)
 
@@ -135,5 +150,6 @@ Suggested rollout:
 
 | Asset | CI name | eb-setup uses |
 |-------|---------|---------------|
-| End-user (no `.git`) | `EGSnrc_CLRP-egs_brachy-VERSION.tar.gz` | **yes** — `install` / `update --from-tarball` |
-| Source (with `.git`) | `EGSnrc_CLRP-egs_brachy-VERSION-src.tar.gz` | no — for developers who want git history |
+| **Bootstrap installer** | `EGSnrc_CLRP-eb-setup-VERSION.tar.gz` | **primary user download** — `install` fetches end-user tarball |
+| End-user (no `.git`) | `EGSnrc_CLRP-egs_brachy-VERSION.tar.gz` | auto-downloaded; also `install --from-tarball` / `update` |
+| Source (with `.git`) | `EGSnrc_CLRP-egs_brachy-VERSION-src.tar.gz` | manual — developers; or `install --git` |
