@@ -43,7 +43,10 @@ jobs:
         if: steps.ver.outputs.is_tag_push == 'true'
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
-          tar -czf "dist/EGSnrc_CLRP-egs_brachy-${VERSION}-src.tar.gz" --exclude='.github' .
+          tar -czf "dist/EGSnrc_CLRP-egs_brachy-${VERSION}-src.tar.gz" \
+            --exclude='.github' \
+            --exclude='./dist' \
+            .
 
       - name: Upload workflow artifacts (manual dry run)
         if: steps.ver.outputs.is_tag_push != 'true'
