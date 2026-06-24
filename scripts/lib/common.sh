@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # Shared helpers for eb-setup.sh
 
-EB_SETUP_VERSION="0.1.0-dev"
+EB_SETUP_VERSION="2026-06-23-alpha.3"
 
 EB_CMD=""
 FROM_TARBALL=0
@@ -68,11 +68,6 @@ parse_args() {
                 TARBALL_PATH="$2"
                 shift 2
                 ;;
-            --tarball)
-                FROM_TARBALL=1
-                TARBALL_PATH="${2:?}"
-                shift 2
-                ;;
             --install-dir)    INSTALL_DIR="${2:?}"; shift 2 ;;
             --git)            INSTALL_GIT=1; shift ;;
             --egs-home)       EGS_HOME_OVERRIDE="${2:?}"; shift 2 ;;
@@ -92,27 +87,52 @@ usage() {
     cat <<EOF
 eb-setup ${EB_SETUP_VERSION} — install, update, sync, and diagnose egs_brachy
 
-Usage: eb-setup.sh <command> [options]
+Usage:  eb-setup.sh <command> [options]
 
-Commands: check | install | update | sync | env | help
+Commands:
+  check     Report EGS_CONFIG, EGS_HOME, install scenario, and suggested next step
+  install   Fetch or unpack release sources, run configure (if needed), sync to EGS_HOME
+  update    Pull latest release (git tree) or download and merge release tarball (no-git)
+  sync      Copy egs_brachy from HEN_HOUSE to EGS_HOME and rebuild
+  env       Print shell exports and write eb-env.sh (source this file in new terminals)
+  help      Show this message
 
-Options: --from-tarball PATH --install-dir PATH --egs-home PATH --git
-         --non-interactive --yes --dry-run --strict --stash
+Options (global):
+  --install-dir PATH   Install tree (default: ~/EGSnrc_CLRP)
+  --egs-home PATH      Suggested EGS_HOME for configure (default: ./egs_home under install tree)
+  --from-tarball PATH  Use a local EGSnrc_CLRP-egs_brachy-VERSION.tar.gz (install or update)
+  --git                Clone EGSnrc_CLRP from GitHub instead of downloading a release tarball
+  --non-interactive    Run configure.expect where applicable
+  --yes                Auto-confirm sync overwrites (and git update policy when applicable)
+  --dry-run            Print planned commands without changing anything
+  --strict             Abort git update if the repo tree has uncommitted changes
+  --stash              Stash uncommitted changes before git update, restore after
 
-Install:  install                     bootstrap: download release → ~/EGSnrc_CLRP
-          install --git               clone egs_brachy branch (developers)
-          install --from-tarball PATH offline install from local .tar.gz
-          install                     release tree: in-place configure + sync
+install
+  From bootstrap tarball (eb-setup.sh only): download latest release → ~/EGSnrc_CLRP
+  From full release tree (EGSnrc_CLRP/): configure + sync in place (or relocate to ~/EGSnrc_CLRP)
+  --from-tarball PATH  Offline install from a downloaded .tar.gz
+  --git                Developer install: git clone to --install-dir
 
-Update:   update                      download latest GitHub release (release tree)
-          update --from-tarball PATH  offline / pinned file
-          (--tarball PATH is an alias for --from-tarball PATH)
+update
+  Release tree (no git): download latest GitHub release and merge into install tree
+  Git checkout: git pull EGSnrc_CLRP + egs_brachy submodule, rebuild
+  --from-tarball PATH  Offline update from a downloaded .tar.gz (recommended when offline)
 
-Release:  EB_RELEASE_TAG=1.0.0-alpha.2  pin GitHub release tag
-          EB_RELEASE_URL=https://…        direct tarball URL (offline mirror)
+Offline or pinned release (choose one):
+  ./eb-setup.sh install --from-tarball /path/to/EGSnrc_CLRP-egs_brachy-VERSION.tar.gz
+      Use a tarball you already downloaded (simplest when offline)
+  EB_RELEASE_TAG=2026-06-23-alpha.1 ./eb-setup.sh install
+      Prefix on the same line — sets a variable for this command only, then eb-setup
+      fetches that GitHub release over the network (tag: egs_brachy-2026-06-23-alpha.1)
+  EB_RELEASE_URL=file:///path/to/EGSnrc_CLRP-egs_brachy-VERSION.tar.gz ./eb-setup.sh install
+      Same one-line prefix; download from a file:// or https:// URL instead of GitHub API
 
-Testing: branch feature/eb-setup; scratch ~/Developer/scratch
-Docs:    docs/eb-setup-testing.md  docs/branch-layout.md
+Typical end-user flow:
+  tar -xzf EGSnrc_CLRP-eb-setup-VERSION.tar.gz && cd EGSnrc_CLRP-eb-setup-VERSION
+  ./eb-setup.sh install --egs-home ~/scratch/egs_home/
+  cd ~/EGSnrc_CLRP && source ./eb-env.sh
+  ./eb-setup.sh update
 EOF
 }
 
