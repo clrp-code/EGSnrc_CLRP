@@ -84,12 +84,26 @@ _cmd_install_bootstrap() {
 }
 
 _cmd_install_release_inplace() {
-    if [[ -n "$INSTALL_DIR" ]]; then
-        local id
-        id="$(expand_user_path "$INSTALL_DIR")"
-        [[ "$id" == "$REPO_ROOT" ]] || die "--install-dir conflicts with in-place install (run from $REPO_ROOT)"
+    local dest repo
+    dest="$(eb_install_dest)"
+    repo="$(cd "$REPO_ROOT" && pwd -P)"
+    dest="$(expand_user_path "$dest")"
+    mkdir -p "$dest" 2>/dev/null || true
+    dest="$(cd "$dest" && pwd -P)"
+    if [[ "$repo" == "$dest" ]]; then
+        log "release tree detected — in-place install"
+    else
+        if install_dest_taken "$dest"; then
+            die "install dir already exists: $dest (use: eb-setup.sh update)"
+        fi
+        log "installing release tree to $dest"
+        check_mortran_path_lengths_for "$dest"
+        run rsync -a "${REPO_ROOT%/}/" "${dest%/}/"
+        REPO_ROOT="$dest"
+        HEN_HOUSE="${dest%/}/HEN_HOUSE"
+        EB_SUBMODULE="${HEN_HOUSE}/user_codes/egs_brachy"
+        log "for day-to-day use:  cd $REPO_ROOT && source ./eb-env.sh"
     fi
-    log "release tree detected — in-place install"
     check_mortran_path_lengths
 }
 

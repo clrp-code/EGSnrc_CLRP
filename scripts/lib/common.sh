@@ -122,7 +122,9 @@ _config_value() {
 }
 
 # Default end-user install location (short path for Mortran machine.macros).
-eb_default_install_dir() { echo "${HOME}/EGSnrc_CLRP"; }
+EB_INSTALL_TREE_NAME="EGSnrc_CLRP"
+
+eb_default_install_dir() { echo "${HOME}/${EB_INSTALL_TREE_NAME}"; }
 
 eb_install_dest() {
     expand_user_path "${INSTALL_DIR:-$(eb_default_install_dir)}"

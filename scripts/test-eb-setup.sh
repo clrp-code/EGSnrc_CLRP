@@ -128,13 +128,13 @@ fi
 # 9) release tarball injects release.mk with EGS_RELEASE + both SHAs
 if [[ -f "$ROOT/HEN_HOUSE/user_codes/egs_brachy/egs_brachy/Makefile" ]]; then
     rm_out="$("$ROOT/scripts/build-release-tarball.sh" 9.9.9-test 2>&1)" || true
-    rel_mk="$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test/HEN_HOUSE/specs/release.mk"
+    rel_mk="$ROOT/dist/EGSnrc_CLRP/HEN_HOUSE/specs/release.mk"
     if [[ -f "$rel_mk" ]] \
         && grep -q 'EGS_RELEASE.*9.9.9-test' "$rel_mk" \
         && grep -q 'EGS_CLRP_HASH' "$rel_mk" \
         && grep -q 'EGS_BRACHY_HASH' "$rel_mk"; then
         ok 'build-release-tarball.sh writes release.mk with dual SHAs'
-        rm -rf "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test" \
+        rm -rf "$ROOT/dist/EGSnrc_CLRP" \
                "$ROOT/dist/EGSnrc_CLRP-egs_brachy-9.9.9-test.tar.gz"
     else
         bad "build-release-tarball.sh release.mk: $rm_out"

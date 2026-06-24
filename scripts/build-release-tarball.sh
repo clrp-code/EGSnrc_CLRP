@@ -19,6 +19,7 @@ usage() {
 Usage: $(basename "$0") VERSION
 
 Build dist/EGSnrc_CLRP-egs_brachy-VERSION.tar.gz (end-user, no .git).
+Extracts to a top-level EGSnrc_CLRP/ directory (no version in the path).
 
 Writes HEN_HOUSE/specs/release.mk into the tarball so compiles show EGS_RELEASE,
 EGS_CLRP_HASH, and EGS_BRACHY_HASH even without .git in the install tree.
@@ -40,7 +41,7 @@ EOF
     exit 1
 }
 
-DIR="EGSnrc_CLRP-egs_brachy-${VERSION}"
+DIR="${EB_INSTALL_TREE_NAME:-EGSnrc_CLRP}"
 ARCHIVE="${OUT_DIR}/EGSnrc_CLRP-egs_brachy-${VERSION}.tar.gz"
 STAGING="${OUT_DIR}/${DIR}"
 EB_SUB="${ROOT}/HEN_HOUSE/user_codes/egs_brachy"

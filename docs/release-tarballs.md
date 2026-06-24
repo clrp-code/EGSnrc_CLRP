@@ -59,8 +59,8 @@ You can also run `update` / `check` from the bootstrap directory after install â
 ```bash
 # In-place install inside an extracted full release tarball
 tar -xzf .../EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1.tar.gz
-cd EGSnrc_CLRP-egs_brachy-1.0.0-alpha.1
-./eb-setup.sh install --egs-home "$HOME/scratch/tarball-egs_home/"
+./EGSnrc_CLRP/eb-setup.sh install --egs-home "$HOME/scratch/tarball-egs_home/"
+# (install relocates to ~/EGSnrc_CLRP if not already there)
 
 # Offline bootstrap install
 ./eb-setup.sh install --from-tarball \

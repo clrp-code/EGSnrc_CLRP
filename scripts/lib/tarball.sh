@@ -198,7 +198,7 @@ tarball_extract_to_temp() {
     log "extracting $(basename "$archive")..."
     if (( DRY_RUN )); then
         printf 'eb-setup: [dry-run] tar -xzf %q -C %q\n' "$archive" "$tmp"
-        TARBALL_PAYLOAD_ROOT="$tmp/EGSnrc_CLRP-egs_brachy"
+        TARBALL_PAYLOAD_ROOT="$tmp/${EB_INSTALL_TREE_NAME:-EGSnrc_CLRP}"
         return 0
     fi
     run tar -xzf "$archive" -C "$tmp"
