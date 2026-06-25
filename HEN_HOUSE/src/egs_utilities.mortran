@@ -410,7 +410,12 @@ call egs_open_units(.true.);
 
 " Now print a summary of what happened "
 $egs_info('(a)',line);
-$egs_info('(a,a,t55,a,$)','EGSnrc version 4 for ',$CANONICAL_SYSTEM,' ');
+#ifdef EGS_RELEASE;
+$egs_info('(a,a,a,$)','EGSnrc ',EGS_RELEASE,' for ');
+$egs_info('(a)',$CANONICAL_SYSTEM);
+#else;
+$egs_info('(a,a,t55,a,$)','EGSnrc for ',$CANONICAL_SYSTEM,' ');
+#endif;
 call egs_get_fdate(dattim);
 $egs_info('(a,/,a)',dattim,line);
 
@@ -439,7 +444,12 @@ IF( pos2 < pos1+2 ) pos2 = pos1 + 2;
 $write_description('configuration'); $egs_info('(a)',$CONFIGURATION_NAME);
 $write_description('configuration time'); $egs_info('(a)',$CONFIG_TIME);
 $write_description('app compile time'); $egs_info('(a)',COMPILE_TIME);
-$write_description('git commit hash'); $egs_info('(a)',GIT_HASH);
+#ifdef EGS_CLRP_HASH;
+$write_description('EGSnrc_CLRP commit'); $egs_info('(a)',EGS_CLRP_HASH);
+#endif;
+#ifdef EGS_BRACHY_HASH;
+$write_description('egs_brachy commit'); $egs_info('(a)',EGS_BRACHY_HASH);
+#endif;
 $write_description('application'); $egs_info('(a)',$cstring(user_code));
 $write_description('pegs file'); $egs_info('(a)',$cstring(tmp_string));
 $write_description('using host'); $egs_info('(a)',$cstring(host_name));
