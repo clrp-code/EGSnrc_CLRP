@@ -776,7 +776,6 @@ int EGS_Application::initRNG() {
         rndm = EGS_RandomGenerator::createRNG(input,sequence);
     }
     if (!rndm) {
-        egsWarning("EGS_Application::initRNG(): using default RNG\n");
         rndm = EGS_RandomGenerator::defaultRNG(sequence);
     }
     if (!rndm) {
@@ -788,9 +787,20 @@ int EGS_Application::initRNG() {
 
 int EGS_Application::initSimulation() {
     //if( !input ) { egsWarning("%s no input\n",__egs_app_msg2); return -1; }
-    egsInformation("In EGS_Application::initSimulation()\n");
     int err;
     bool ok = true;
+
+    err = initRunControl();
+    if (err) {
+        egsWarning("\n\n%s run control initialization failed\n",__egs_app_msg2);
+        return 1;
+    }
+    err = initEGSnrcBackEnd();
+    if (err) {
+        egsWarning("\n\n%s back-end initialization failed\n",__egs_app_msg2);
+        return 2;
+    }
+
     err = initGeometry();
     if (err) {
         egsWarning("\n\n%s geometry initialization failed\n",__egs_app_msg2);
@@ -806,18 +816,8 @@ int EGS_Application::initSimulation() {
         egsWarning("\n\n%s RNG initialization failed\n",__egs_app_msg2);
         ok = false;
     }
-    err = initRunControl();
-    if (err) {
-        egsWarning("\n\n%s run control initialization failed\n",__egs_app_msg2);
-        ok = false;
-    }
     if (!ok) {
         return 1;
-    }
-    err = initEGSnrcBackEnd();
-    if (err) {
-        egsWarning("\n\n%s back-end initialization failed\n",__egs_app_msg2);
-        return 2;
     }
     describeUserCode();
     err = initCrossSections();

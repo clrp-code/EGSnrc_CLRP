@@ -420,8 +420,6 @@ EGS_RandomGenerator *EGS_RandomGenerator::createRNG(EGS_Input *input,
     else {
         i = input->takeInputItem("rng definition");
         if (!i) {
-            egsWarning("EGS_RandomGenerator::createRNG: no 'RNG definition'"
-                       " input\n");
             return 0;
         }
         delete_it = true;
