@@ -295,13 +295,13 @@ public:
       the source, the random number generator, the run control object,
       the EGSnrc mortran back end, the cross sections and the scoring
       of quantities of interest by calling in succession the
-      protected virtual functions initGeometry(),
-      initSource(), initRNG(), initRunControl(), initEGSnrcBackEnd(),
-      initCrossSections() and initScoring().
+      protected virtual functions initRunControl(), initEGSnrcBackEnd(),
+      initGeometry(), initSource(), initRNG(), initCrossSections()
+      and initScoring().
       - If all calls succeed (i.e. the above functions return zero)
         the return value is zero.
-      - The return value is 1 if any of initGeometry(), initSource(),
-        initRNG() or initRunControl() returns a non-zero status,
+      - The return value is 1 if any of initRunControl(), initGeometry(),
+        initSource() or initRNG() returns a non-zero status,
       - 2 if initEGSnrcBackEnd() returns a non-zero status,
       - 3 if initCrossSections() returns a non-zero status  and
       - 4 if initScoring() returns a non-zero status.
