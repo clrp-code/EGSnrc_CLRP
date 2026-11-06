@@ -761,13 +761,15 @@ bool EGS_JCFControl::writeControlFile() {
 }
 
 EGS_I64 EGS_JCFControl::getNextChunk() {
+    
+    if (!readControlFile()) {
+        return -1;
+    }
+    
     if (first_time) {
         first_time = false;
         njob++;
     }
-	else if (!readControlFile()) {
-		return -1;
-	}
 	
     double sum, sum2, count;
     app->getCurrentResult(sum,sum2,norm,count);
