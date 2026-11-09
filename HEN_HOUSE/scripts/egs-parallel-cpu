@@ -147,27 +147,36 @@ for job in $(seq 1 $nthread); do
         printf "$(timestamp): $jobstr: BEGIN host=\$(hostname) pid=$$\n" > $basename.egsjob
         log "BEGIN host=$(hostname)"
     fi
-	
+    
     log "$jobstr: RUN $runcommand"
     log "$jobstr: host=$(hostname) pid=$pid"
-	
+    
     /bin/sleep $delay
-	
-    if [[ $command != *"-u "* ]] && [[ $command != *"--urc"* ]]; then
+    
+    # the lock file is only created by the dynamic job control; simple (-s) and uniform (-u) run control have none
+    if [[ ! " $command " =~ [[:space:]](-s|--simple-run|-u|--urc)[[:space:]] ]]; then
         if [ $job -eq 1 ]; then
-	    exitLoopCount=0
-	    while [ ! -f $basename".lock" ]; do
-	        exitLoopCount=$((exitLoopCount + 1))
-		log "$jobstr: waiting for "$basename".lock generation, attempt "$exitLoopCount
-		/bin/sleep $delay
-		if [ $exitLoopCount -eq 12 ]; then
-		    log "$jobstr: did not find "$basename".lock after "$exitLoopCount" attempts..."
-		    log "$jobstr: ensure "$basename"runs interactively or try using longer delay,"
-		    log "$jobstr: aborting submission script."
-		    exit
-		fi	
-	    done
-	fi
+        
+            exitLoopCount=0
+            while [ ! -f $basename".lock" ] && kill -0 $pid 2>/dev/null; do
+                log "$jobstr: waiting for "$basename".lock generation"
+                /bin/sleep 1
+                exitLoopCount=$((exitLoopCount + 1))
+                if [ $exitLoopCount -eq 86400 ]; then
+                    log "$jobstr: failed to create "$basename".lock within 24 hours..."
+                    log "$jobstr: ensure "$basename" runs interactively in a reasonable time"
+                    log "$jobstr: aborting submission script"
+                    echo "egs-parallel-cpu: job 1 exceeded time limit to create $basename.lock" >&2
+                    exit 1
+                fi	
+            done
+            
+            if [ ! -f $basename".lock" ]; then
+                log "$jobstr: ended without creating "$basename".lock, aborting submission script."
+                echo "egs-parallel-cpu: job 1 ended without creating $basename.lock; jobs 2 to $nthread not started" >&2
+                exit 1
+            fi
+        fi
     fi
 done
 
